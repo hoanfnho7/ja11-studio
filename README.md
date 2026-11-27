@@ -3,7 +3,7 @@
 Bộ công cụ điều khiển chuyên sâu **FiiO / JadeAudio JA11** (KT02H20 DSP) với ngôn ngữ thiết kế **Acoustic Precision Dark**, hoạt động trên cả **Trình duyệt PC (WebHID PWA)** và **Điện thoại Android (100% Pure Native `.APK` 120Hz)**.
 
 - 🌐 **Dùng trực tiếp trên Web (Chrome / Edge PC):** [https://hoanfnho7.github.io/ja11-studio/](https://hoanfnho7.github.io/ja11-studio/)
-- 📱 **Tải App Android Native (`JA11-Studio-v3.0.apk`):** [Tải bản mới nhất tại mục Releases](https://github.com/hoanfnho7/ja11-studio/releases/latest)
+- 📱 **Tải App Android Native (`JA11-Studio-v3.1.apk`):** [Tải bản mới nhất tại mục Releases](https://github.com/hoanfnho7/ja11-studio/releases/latest)
 
 ---
 

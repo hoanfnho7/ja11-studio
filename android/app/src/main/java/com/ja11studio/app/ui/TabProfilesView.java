@@ -536,9 +536,10 @@ public final class TabProfilesView extends LinearLayout {
             LinearLayout actRow = new LinearLayout(ctx);
             actRow.setOrientation(HORIZONTAL);
 
+            boolean isSyncing = controller.getHardwareState().syncing;
             TextView liveBtn = UiKit.actionButton(
                     ctx,
-                    isActive ? "⚡ ĐANG NGHE LIVE (RAM)" : "⚡ NGHE THỬ LIVE (RAM)",
+                    isActive ? (isSyncing ? "⏳ ĐANG GỬI..." : "✓ ĐANG ÁP DỤNG") : "⚡ NGHE THỬ LIVE (RAM)",
                     isActive ? UiKit.C_AMBER_CONTAINER : UiKit.C_SURFACE_HIGH,
                     isActive ? UiKit.C_ON_AMBER : UiKit.C_TEXT_PRIMARY,
                     Color.TRANSPARENT,

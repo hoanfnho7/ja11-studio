@@ -210,13 +210,13 @@ export const App: React.FC = () => {
 
               {!isRunningInsideAndroidApk() && (
                 <a
-                  href="https://github.com/hoanfnho7/ja11-studio/releases/latest/download/JA11-Studio-v3.0.apk"
+                  href="https://github.com/hoanfnho7/ja11-studio/releases/latest/download/JA11-Studio-v3.1.apk"
                   target="_blank"
                   rel="noreferrer"
                   className="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium text-sm transition flex items-center justify-center gap-2"
                 >
                   <Smartphone className="w-4 h-4 text-cyan-400" />
-                  Tải App Android (.APK v3.0)
+                  Tải App Android (.APK v3.1)
                 </a>
               )}
             </div>
@@ -360,11 +360,15 @@ export const App: React.FC = () => {
                     <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
                     Âm lượng DAC (0–60)
                   </span>
-                  <span className="font-mono font-semibold text-cyan-300">
+                  <span
+                    className={`font-mono font-semibold ${
+                      effectiveState.hardware.deviceVolume < 32 ? 'text-rose-400' : 'text-cyan-300'
+                    }`}
+                  >
                     {effectiveState.hardware.deviceVolume} / 60
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <input
                     type="range"
                     min={0}
@@ -377,10 +381,23 @@ export const App: React.FC = () => {
                   <button
                     onClick={() => ja11Engine.updateDeviceVolumeLive(32)}
                     className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 shrink-0 cursor-pointer"
+                    title="Mức nhỏ nhất an toàn không rè trên chip KT02H20"
                   >
-                    32 (PC)
+                    32 (Min)
+                  </button>
+                  <button
+                    onClick={() => ja11Engine.updateDeviceVolumeLive(48)}
+                    className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 shrink-0 cursor-pointer"
+                    title="Mức sạch nền tối ưu trên chip KT02H20 (sau đó hạ bằng âm lượng Windows)"
+                  >
+                    48 (Sạch)
                   </button>
                 </div>
+                {effectiveState.hardware.deviceVolume < 32 && (
+                  <p className="text-[10px] text-rose-400 leading-snug">
+                    ⚠ Dưới 32/60 dễ gây rè liên tục trên chip KT02H20 — nên giữ ≥ 32 và hạ thêm bằng âm lượng Windows hoặc Master Gain.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">

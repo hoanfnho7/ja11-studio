@@ -39,6 +39,6 @@ jobs:
             ### 💻 Sử dụng trực tiếp trên Máy tính (Không cần cài đặt)
             - Mở trang **GitHub Pages** bằng **Chrome / Edge / Opera**, cắm JA11 vào cổng USB và bấm **Kết nối**.
           files: |
-            release/JA11-Studio-v3.0.apk
+            release/JA11-Studio-v3.1.apk
           draft: false
           prerelease: false

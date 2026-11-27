@@ -150,14 +150,14 @@ export const HardwareControlBar: React.FC<Props> = ({
 
           {!isRunningInsideAndroidApk() && (
             <a
-              href="https://github.com/hoanfnho7/ja11-studio/releases/latest/download/JA11-Studio-v3.0.apk"
+              href="https://github.com/hoanfnho7/ja11-studio/releases/latest/download/JA11-Studio-v3.1.apk"
               target="_blank"
               rel="noreferrer"
-              title="Tải App Android Native v3.0 (.APK)"
+              title="Tải App Android Native v3.1 (.APK)"
               className="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-cyan-500/35 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 transition inline-flex items-center gap-1 whitespace-nowrap"
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span className="hidden 2xl:inline">APK v3.0</span>
+              <span className="hidden 2xl:inline">APK v3.1</span>
             </a>
           )}
 

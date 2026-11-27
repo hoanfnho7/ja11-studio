@@ -79,6 +79,9 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
     private TabSweepView tabSweepView;
     private TabProfilesView tabProfilesView;
     private TabHardwareView tabHardwareView;
+    private View connectGateView;
+    private TextView gateStatusTv;
+    private View bottomNavBarView;
     private final View[] tabViews = new View[4];
     private final LinearLayout[] bottomNavItems = new LinearLayout[4];
     private final TextView[] bottomNavLabels = new TextView[4];
@@ -173,6 +176,13 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
             ));
         }
 
+        // Mandatory DAC Connection Gate overlay (shown until JA11 connects via USB-C OTG)
+        connectGateView = buildConnectGateView();
+        contentFrame.addView(connectGateView, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        ));
+
         rootShell.addView(contentFrame, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 0,
@@ -180,7 +190,8 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
         ));
 
         // 3. Persistent 4-Tab Bottom Navigation Bar
-        rootShell.addView(buildBottomNavBar(), new LinearLayout.LayoutParams(
+        bottomNavBarView = buildBottomNavBar();
+        rootShell.addView(bottomNavBarView, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         ));
@@ -225,7 +236,7 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
         brandRow.setOrientation(LinearLayout.HORIZONTAL);
         brandRow.setGravity(Gravity.CENTER_VERTICAL);
         TextView brandTv = UiKit.label(this, "FiiO JA11", 16f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
-        TextView dspTag = UiKit.badge(this, "DSP v3", UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT);
+        TextView dspTag = UiKit.badge(this, "DSP v3.1", UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT);
         LinearLayout.LayoutParams dtLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dtLp.leftMargin = UiKit.dp(this, 6f);
         dspTag.setLayoutParams(dtLp);
@@ -326,20 +337,112 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
         return wrap;
     }
 
+    private View buildConnectGateView() {
+        LinearLayout outer = new LinearLayout(this);
+        outer.setOrientation(LinearLayout.VERTICAL);
+        outer.setGravity(Gravity.CENTER);
+        outer.setBackgroundColor(UiKit.C_SURFACE);
+        int p20 = UiKit.dp(this, 20f);
+        outer.setPadding(p20, p20, p20, p20);
+
+        LinearLayout card = UiKit.cardContainer(this, 18f);
+        card.setGravity(Gravity.CENTER_HORIZONTAL);
+
+        TextView iconTv = UiKit.badge(this, "🔌", UiKit.C_SURFACE_CONTAINER, UiKit.C_CYAN_TEXT);
+        iconTv.setTextSize(26f);
+        iconTv.setPadding(UiKit.dp(this, 14f), UiKit.dp(this, 10f), UiKit.dp(this, 14f), UiKit.dp(this, 10f));
+        card.addView(iconTv, UiKit.matchWrapBottomMargin(this, 12f));
+        iconTv.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        ((LinearLayout.LayoutParams) iconTv.getLayoutParams()).bottomMargin = UiKit.dp(this, 12f);
+
+        TextView title = UiKit.label(this, "Kết nối FiiO / JadeAudio JA11", 19f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
+        title.setGravity(Gravity.CENTER);
+        card.addView(title, UiKit.matchWrapBottomMargin(this, 8f));
+
+        TextView desc = UiKit.label(
+                this,
+                "Cắm DAC FiiO JA11 vào cổng USB-C điện thoại rồi bấm nút bên dưới để đọc thông số trực tiếp từ chip và mở khóa bảng điều khiển Studio.",
+                13f,
+                UiKit.C_TEXT_MUTED,
+                UiKit.FONT_SANS
+        );
+        desc.setGravity(Gravity.CENTER);
+        card.addView(desc, UiKit.matchWrapBottomMargin(this, 16f));
+
+        TextView bigConnectBtn = UiKit.actionButton(
+                this,
+                "🔌 KẾT NỐI FIIO JA11 (USB-C OTG)",
+                UiKit.C_AMBER_CONTAINER,
+                UiKit.C_ON_AMBER,
+                Color.TRANSPARENT,
+                10f,
+                12f
+        );
+        bigConnectBtn.setMinHeight(UiKit.dp(this, 48f));
+        bigConnectBtn.setOnClickListener(v -> {
+            UiKit.hapticTap(v);
+            usbController.connectAsync(false);
+        });
+        card.addView(bigConnectBtn, UiKit.matchWrapBottomMargin(this, 12f));
+
+        TextView hintBox = UiKit.label(
+                this,
+                "• Bước 1: Cắm JA11 + tai nghe vào cổng USB-C\n"
+                        + "• Bước 2: Bật OTG trong Cài đặt (nếu dùng Oppo/Vivo/Realme) và đóng app FiiO Control chạy nền\n"
+                        + "• Bước 3: Bấm Cho phép trên bảng hỏi USB Android",
+                11f,
+                UiKit.C_TEXT_MUTED,
+                UiKit.FONT_MONO
+        );
+        int p10 = UiKit.dp(this, 10f);
+        hintBox.setPadding(p10, p10, p10, p10);
+        hintBox.setBackground(UiKit.roundedBox(this, UiKit.C_SURFACE_LOWEST, 9f, UiKit.C_BORDER, 0.8f));
+        card.addView(hintBox, UiKit.matchWrapBottomMargin(this, 10f));
+
+        gateStatusTv = UiKit.label(this, "Chưa phát hiện DAC USB-C", 10.5f, UiKit.C_CYAN_TEXT, UiKit.FONT_MONO);
+        gateStatusTv.setGravity(Gravity.CENTER);
+        card.addView(gateStatusTv, UiKit.matchWrapBottomMargin(this, 8f));
+
+        TextView logBtn = UiKit.actionButton(this, "📋 Xem Nhật ký USB (Hex)", UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_MUTED, Color.TRANSPARENT, 8f, 10f);
+        logBtn.setMinHeight(UiKit.dp(this, 34f));
+        logBtn.setOnClickListener(v -> {
+            android.widget.ScrollView sv = new android.widget.ScrollView(this);
+            TextView tv = UiKit.label(this, usbController.getDebugLogText(), 10.5f, UiKit.C_CYAN_TEXT, UiKit.FONT_MONO);
+            tv.setPadding(p10, p10, p10, p10);
+            tv.setBackgroundColor(UiKit.C_SURFACE_LOWEST);
+            tv.setTextIsSelectable(true);
+            sv.addView(tv);
+            new android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                    .setTitle("Nhật ký Gói tin USB-C HID")
+                    .setView(sv)
+                    .setPositiveButton("Đóng", null)
+                    .show();
+        });
+        card.addView(logBtn);
+
+        outer.addView(card, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+        return outer;
+    }
+
     private void selectTab(int idx) {
         activeTab = Math.max(0, Math.min(3, idx));
-        topSubtitleTv.setText(TAB_SUBTITLES[activeTab]);
+        HardwareState hw = usbController.getHardwareState();
+        topSubtitleTv.setText(hw.connected ? TAB_SUBTITLES[activeTab] : "Chờ kết nối USB-C DAC");
         for (int i = 0; i < 4; i++) {
-            boolean act = (i == activeTab);
+            boolean act = hw.connected && (i == activeTab);
             tabViews[i].setVisibility(act ? View.VISIBLE : View.GONE);
             bottomNavItems[i].setBackground(UiKit.roundedBox(
                     this,
-                    act ? UiKit.C_SURFACE_HIGH : Color.TRANSPARENT,
+                    (i == activeTab) ? UiKit.C_SURFACE_HIGH : Color.TRANSPARENT,
                     9f,
                     Color.TRANSPARENT,
                     0f
             ));
-            int col = act ? UiKit.C_AMBER_CONTAINER : UiKit.C_TEXT_MUTED;
+            int col = (i == activeTab) ? UiKit.C_AMBER_CONTAINER : UiKit.C_TEXT_MUTED;
             bottomNavIcons[i].setTextColor(col);
             bottomNavLabels[i].setTextColor(col);
         }
@@ -354,10 +457,25 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
             connectBtn.setText("● Đã kết nối");
             connectBtn.setTextColor(UiKit.C_CYAN_TEXT);
             disconnectBtn.setVisibility(View.VISIBLE);
+            abBypassBtn.setVisibility(View.VISIBLE);
+            connectGateView.setVisibility(View.GONE);
+            bottomNavBarView.setVisibility(View.VISIBLE);
+            topSubtitleTv.setText(TAB_SUBTITLES[activeTab]);
+            for (int i = 0; i < 4; i++) {
+                tabViews[i].setVisibility(i == activeTab ? View.VISIBLE : View.GONE);
+            }
         } else {
             connectBtn.setText(hw.syncing ? "⏳ Đang nối..." : "● Kết nối");
             connectBtn.setTextColor(UiKit.C_AMBER_TEXT);
             disconnectBtn.setVisibility(View.GONE);
+            abBypassBtn.setVisibility(View.GONE);
+            connectGateView.setVisibility(View.VISIBLE);
+            bottomNavBarView.setVisibility(View.GONE);
+            topSubtitleTv.setText("Chờ kết nối USB-C DAC");
+            gateStatusTv.setText(hw.statusMessage);
+            for (int i = 0; i < 4; i++) {
+                tabViews[i].setVisibility(View.GONE);
+            }
         }
 
         abBypassBtn.setText(eqOn ? "⇄ EQ BẬT" : "⇄ EQ TẮT");

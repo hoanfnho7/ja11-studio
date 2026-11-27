@@ -65,6 +65,7 @@ public final class TabEqView extends ScrollView {
     // Output stage
     private final TextView volValueTv;
     private final SeekBar volSeek;
+    private final TextView volWarnTv;
     private final TextView preampAutoBtn;
     private final TextView preampValueTv;
     private final SeekBar preampSeek;
@@ -235,21 +236,33 @@ public final class TabEqView extends ScrollView {
         TextView volLbl = UiKit.label(ctx, "Âm lượng DAC phần cứng", 11.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO);
         volLbl.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-        TextView pc32Btn = UiKit.actionButton(ctx, "32 (PC)", UiKit.C_SURFACE_HIGHEST, UiKit.C_CYAN_TEXT, Color.TRANSPARENT, 6f, 10f);
+        TextView pc32Btn = UiKit.actionButton(ctx, "32 (Min)", UiKit.C_SURFACE_HIGHEST, UiKit.C_CYAN_TEXT, Color.TRANSPARENT, 6f, 9.5f);
         pc32Btn.setMinHeight(UiKit.dp(ctx, 28f));
-        pc32Btn.setPadding(UiKit.dp(ctx, 8f), UiKit.dp(ctx, 3f), UiKit.dp(ctx, 8f), UiKit.dp(ctx, 3f));
+        pc32Btn.setPadding(UiKit.dp(ctx, 7f), UiKit.dp(ctx, 3f), UiKit.dp(ctx, 7f), UiKit.dp(ctx, 3f));
         pc32Btn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
             controller.updateDeviceVolumeLive(32);
         });
 
+        TextView clean48Btn = UiKit.actionButton(ctx, "48 (Sạch)", UiKit.C_SURFACE_HIGHEST, UiKit.C_GREEN, Color.TRANSPARENT, 6f, 9.5f);
+        clean48Btn.setMinHeight(UiKit.dp(ctx, 28f));
+        clean48Btn.setPadding(UiKit.dp(ctx, 7f), UiKit.dp(ctx, 3f), UiKit.dp(ctx, 7f), UiKit.dp(ctx, 3f));
+        LinearLayout.LayoutParams c48Lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        c48Lp.leftMargin = UiKit.dp(ctx, 4f);
+        clean48Btn.setLayoutParams(c48Lp);
+        clean48Btn.setOnClickListener(v -> {
+            UiKit.hapticTap(v);
+            controller.updateDeviceVolumeLive(48);
+        });
+
         volValueTv = UiKit.badge(ctx, "36 / 60", UiKit.C_SURFACE_HIGHEST, UiKit.C_CYAN_TEXT);
         LinearLayout.LayoutParams vvLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        vvLp.leftMargin = UiKit.dp(ctx, 6f);
+        vvLp.leftMargin = UiKit.dp(ctx, 5f);
         volValueTv.setLayoutParams(vvLp);
 
         volRow.addView(volLbl);
         volRow.addView(pc32Btn);
+        volRow.addView(clean48Btn);
         volRow.addView(volValueTv);
         volBox.addView(volRow, UiKit.matchWrapBottomMargin(ctx, 4f));
 
@@ -269,6 +282,16 @@ public final class TabEqView extends ScrollView {
             @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
         volBox.addView(volSeek);
+
+        volWarnTv = UiKit.label(
+                ctx,
+                "Khuyên dùng 32–60/60 (dưới 32 dễ rè liên tục trên chip KT02H20)",
+                9.5f,
+                UiKit.C_TEXT_MUTED,
+                UiKit.FONT_MONO
+        );
+        volWarnTv.setGravity(Gravity.CENTER_HORIZONTAL);
+        volBox.addView(volWarnTv);
         outCard.addView(volBox, UiKit.matchWrapBottomMargin(ctx, 8f));
 
         // Master Preamp Box
@@ -489,6 +512,12 @@ public final class TabEqView extends ScrollView {
             rebuildQuickChips();
 
             volValueTv.setText(hw.deviceVolume + " / 60");
+            boolean lowVolRisk = hw.deviceVolume < 32;
+            volValueTv.setTextColor(lowVolRisk ? UiKit.C_ERROR : UiKit.C_CYAN_TEXT);
+            volWarnTv.setTextColor(lowVolRisk ? UiKit.C_ERROR : UiKit.C_TEXT_MUTED);
+            volWarnTv.setText(lowVolRisk
+                    ? "⚠ Dưới 32/60 dễ rè trên KT02H20 — nên giữ ≥ 32 và giảm bằng âm lượng máy!"
+                    : "Vùng sạch tiếng (32–60/60) • Giảm thêm bằng âm lượng máy hoặc Master Gain");
             volSeek.setProgress(hw.deviceVolume);
 
             preampValueTv.setText(String.format(Locale.US, "%+.1f dB", live.masterGain));
