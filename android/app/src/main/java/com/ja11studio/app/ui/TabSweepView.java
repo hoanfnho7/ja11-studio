@@ -321,13 +321,13 @@ public final class TabSweepView extends ScrollView {
         refHdr.addView(tipBtn);
         refCard.addView(refHdr, UiKit.matchWrapBottomMargin(ctx, 8f));
 
-        final int[] refHz = {55, 185, 680, 3200, 4380, 7500};
+        final int[] refHz = {55, 185, 680, 3000, 4500, 7500};
         final String[] refLbl = {
                 "55 Hz\nSub-bass",
                 "185 Hz\nMid-bass",
                 "680 Hz\nLow-mid",
-                "3.2 kHz\nPinna",
-                I18n.tr("★ 4.38 kHz\nĐỉnh tai bạn", "★ 4.38 kHz\nEar Peak"),
+                "3.0 kHz\nPinna",
+                I18n.tr("★ 4.5 kHz\nĐỉnh chói", "★ 4.5 kHz\nEar Peak"),
                 "7.5 kHz\nSibilance"
         };
 
@@ -337,7 +337,7 @@ public final class TabSweepView extends ScrollView {
             for (int col = 0; col < 3; col++) {
                 int k = rowIdx * 3 + col;
                 final int hz = refHz[k];
-                boolean featured = (hz == 4380);
+                boolean featured = (hz == 4500);
                 TextView pill = UiKit.actionButton(
                         ctx,
                         refLbl[k],

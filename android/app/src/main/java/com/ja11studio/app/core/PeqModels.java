@@ -105,12 +105,12 @@ public final class PeqModels {
         }
 
         public static PeqSnapshot defaultUserCurve() {
-            return new PeqSnapshot(-12f, new PeqBand[]{
-                    new PeqBand(FilterType.LSQ, 55, 1.5f, 0.71f),
-                    new PeqBand(FilterType.PK, 185, -2.8f, 1.10f),
-                    new PeqBand(FilterType.PK, 680, 2.0f, 1.00f),
-                    new PeqBand(FilterType.PK, 4380, -3.8f, 3.20f),
-                    new PeqBand(FilterType.PK, 7500, -2.5f, 1.40f)
+            return new PeqSnapshot(-3.0f, new PeqBand[]{
+                    new PeqBand(FilterType.LSQ, 75, 2.0f, 0.71f),
+                    new PeqBand(FilterType.PK, 210, -1.8f, 1.10f),
+                    new PeqBand(FilterType.PK, 900, 1.0f, 1.00f),
+                    new PeqBand(FilterType.PK, 4000, -2.0f, 2.20f),
+                    new PeqBand(FilterType.HSQ, 8500, -1.5f, 0.71f)
             });
         }
 

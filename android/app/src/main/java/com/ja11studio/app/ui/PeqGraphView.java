@@ -39,7 +39,7 @@ public final class PeqGraphView extends View {
     private static final float MIN_DB = -13.5f;
     private static final float MAX_DB = 13.5f;
 
-    private static final int[] FREQ_TICKS_FULL = {20, 100, 1000, 4380, 10000, 20000};
+    private static final int[] FREQ_TICKS_FULL = {20, 100, 1000, 4000, 10000, 20000};
     private static final int[] FREQ_TICKS_COMPACT = {20, 100, 1000, 10000, 20000};
     private static final int[] DB_TICKS_FULL = {-12, -6, 0, 6, 12};
     private static final int[] DB_TICKS_COMPACT = {-12, 0, 12};
@@ -280,12 +280,11 @@ public final class PeqGraphView extends View {
         labelPaint.setTextAlign(Paint.Align.CENTER);
         for (int f : freqTicks) {
             float x = freqToX(f, w);
-            boolean isPeakRef = (f == 4380);
-            gridPaint.setColor(isPeakRef ? Color.argb(50, 0, 238, 252) : Color.argb(90, 52, 53, 56));
+            gridPaint.setColor(Color.argb(90, 52, 53, 56));
             canvas.drawLine(x, pt, x, h - pb, gridPaint);
 
-            labelPaint.setColor(isPeakRef ? UiKit.C_CYAN_TEXT : Color.parseColor("#727580"));
-            String lbl = isPeakRef ? "4.38k" : (f >= 1000 ? (f / 1000) + "kHz" : f + "Hz");
+            labelPaint.setColor(Color.parseColor("#727580"));
+            String lbl = f >= 1000 ? (f / 1000) + "kHz" : f + "Hz";
             float clampedX = Math.max(pl + 12f * d, Math.min(w - pr - 14f * d, x));
             canvas.drawText(lbl, clampedX, h - 4f * d, labelPaint);
         }

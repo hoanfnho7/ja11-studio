@@ -95,7 +95,7 @@ public final class Ja11UsbController {
     private PeqSnapshot lastSentRamSnapshot = null;
     private Integer originalPresetBeforePreview = null;
     private int lastNonBypassPreset = 3;
-    private String activeProfileLabel = "JD1 + JA11 | Custom Ear 4380Hz";
+    private String activeProfileLabel = "Harman Balanced (All-Rounder)";
 
     // Coalescing dirty queue for 120fps drag without flooding USB
     private final PeqBand[] dirtyBands = new PeqBand[5];

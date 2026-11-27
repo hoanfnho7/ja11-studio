@@ -31,18 +31,18 @@ jobs:
 
             Real-time 5-Band Hardware PEQ, Hardware DAC Volume (0–60), Ear Peak Sweep, and Offline/Cloud Preset Studio for **FiiO / JadeAudio JA11** (`KT02H20`) — now with **full English & Vietnamese (`EN | VI`)** bilingual support across Web and Android!
 
-            ### ✨ What's New in v3.2.1
-            - **Ear Sweep Beginner's Guide (`EN | VI`)**: Added a collapsible beginner walkthrough on Android and Web explaining how to find & notch out ear-canal resonance peaks (plus 1-click **Set B4** on Web as well).
-            - **Fixed Android Vietnamese TopBar Layout**: Compact single-line header pills (`● USB` + `✕` + `EQ BẬT`) prevent title/button wrapping on narrow screens in Vietnamese mode.
-            - **Full Bilingual `EN | VI` Switcher & KT02H20 `< 32/60` Volume Guard**.
+            ### ✨ What's New in v3.2.2
+            - **Universal Starter Preset Library:** Replaced legacy personal presets with 6 clean, beginner-friendly presets that work great on any IEM or headphone (`Harman Balanced`, `Deep Bass & EDM / Phonk`, `Warm Vocal & Acoustic`, `Podcast & Voice Clarity`, `FPS Gaming & Footsteps`, `Flat Studio Reference 0 dB`). Automatically preserves any custom profiles you previously saved.
+            - **Ear Sweep Beginner's Guide (`EN | VI`)** on both Web & Android + 1-click **Set B4**.
+            - **Clean Single-Line Android TopBar** in both English & Vietnamese.
 
-            ### 📱 Android Pure Native App (`JA11-Studio-v3.2.1.apk`)
+            ### 📱 Android Pure Native App (`JA11-Studio-v3.2.2.apk`)
             - **100% Pure Native Android (Zero WebView):** 120Hz Skia Canvas PEQ graph, 2-finger pinch Q-factor, 48kHz Float32 `AudioTrack` sine sweep, and USB-C OTG HID auto-framing (`Report ID = 2`).
-            - Download **`JA11-Studio-v3.2.1.apk`** under **Assets** below and install directly.
+            - Download **`JA11-Studio-v3.2.2.apk`** under **Assets** below and install directly.
 
             ### 💻 Web Studio (Desktop Chrome / Edge / Opera)
             - Launch live at [https://hoanfnho7.github.io/ja11-studio/](https://hoanfnho7.github.io/ja11-studio/) — plug in your JA11 and click **Connect**.
           files: |
-            release/JA11-Studio-v3.2.1.apk
+            release/JA11-Studio-v3.2.2.apk
           draft: false
           prerelease: false

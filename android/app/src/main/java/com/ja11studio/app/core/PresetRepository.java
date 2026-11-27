@@ -46,6 +46,8 @@ import javax.crypto.spec.SecretKeySpec;
 public final class PresetRepository {
     private static final String PREFS_NAME = "ja11_native_vault_v3";
     private static final String KEY_OFFLINE_VAULT = "offline_profiles_json";
+    private static final String KEY_VAULT_VER = "offline_vault_ver";
+    private static final int CURRENT_VAULT_VER = 2;
     private static final String KEY_CLOUD_CACHE = "cloud_cache_json";
 
     private static final String FIIO_RSA_PUB_B64 =
@@ -78,100 +80,118 @@ public final class PresetRepository {
     public List<PeqProfile> getBuiltinProfiles() {
         List<PeqProfile> list = new ArrayList<>();
         list.add(new PeqProfile(
-                "builtin-jd1-ear4380",
-                "JD1 + JA11 | Custom Ear 4380Hz",
-                "Đo chuẩn ống tai 4380Hz: Sub-bass sâu gọn, vocal tiến sáng, triệt tiêu chói rít màng LCP.",
-                "curated",
-                "JadeAudio JA11",
-                "Chuẩn tai bạn",
-                new PeqSnapshot(-12f, new PeqBand[]{
-                        new PeqBand(FilterType.LSQ, 55, 1.5f, 0.71f),
-                        new PeqBand(FilterType.PK, 185, -2.8f, 1.10f),
-                        new PeqBand(FilterType.PK, 680, 2.0f, 1.00f),
-                        new PeqBand(FilterType.PK, 4380, -3.8f, 3.20f),
-                        new PeqBand(FilterType.PK, 7500, -2.5f, 1.40f)
-                }),
-                0,
-                1732550000000L
-        ));
-        list.add(new PeqProfile(
-                "builtin-jd1-phonk4380",
-                "JD1 + JA11 | Phonk 808 (4380Hz Fix)",
-                "Sub-bass 808 uy lực chắc gọn, cowbell nảy nhưng đã gọt đỉnh buốt 4380Hz nghe lâu không mỏi.",
+                "builtin-harman-balanced",
+                "Harman Balanced (All-Rounder)",
+                I18n.tr(
+                        "Đáp tuyến cân bằng dễ nghe cho mọi tai nghe: bass sâu gọn, giọng hát rõ và dải cao mượt không mỏi tai.",
+                        "Balanced, musical curve for everyday listening: clean sub-bass lift, clear mids, and smooth treble."
+                ),
                 "curated",
                 "JadeAudio JA11",
                 "JA11 Studio",
-                new PeqSnapshot(-10f, new PeqBand[]{
-                        new PeqBand(FilterType.LSQ, 65, 3.5f, 0.71f),
-                        new PeqBand(FilterType.PK, 210, -2.8f, 1.20f),
-                        new PeqBand(FilterType.PK, 1600, 1.5f, 1.10f),
-                        new PeqBand(FilterType.PK, 4380, -4.2f, 3.00f),
-                        new PeqBand(FilterType.PK, 8000, -2.5f, 1.50f)
+                new PeqSnapshot(-3.0f, new PeqBand[]{
+                        new PeqBand(FilterType.LSQ, 75, 2.0f, 0.71f),
+                        new PeqBand(FilterType.PK, 210, -1.8f, 1.10f),
+                        new PeqBand(FilterType.PK, 900, 1.0f, 1.00f),
+                        new PeqBand(FilterType.PK, 4000, -2.0f, 2.20f),
+                        new PeqBand(FilterType.HSQ, 8500, -1.5f, 0.71f)
                 }),
                 0,
-                1732545000000L
+                1732600000000L
         ));
         list.add(new PeqProfile(
-                "builtin-jd1-podcast",
-                "JD1 + JA11 | Podcast & Speech",
-                "Loại bỏ ù nền dải trầm và chói âm gió sibilance, giọng đọc rõ nét tự nhiên.",
+                "builtin-deep-bass-phonk",
+                "Deep Bass & EDM / Phonk",
+                I18n.tr(
+                        "Tăng lực sub-bass 808 căng nảy nhưng vẫn giữ vocal sạch sẽ, hợp EDM, Hip-Hop & Phonk.",
+                        "Punchy 808 sub-bass slam and tight kick while keeping vocals clean for EDM, Hip-Hop & Phonk."
+                ),
                 "curated",
                 "JadeAudio JA11",
-                "hoanfnho7",
-                new PeqSnapshot(-2f, new PeqBand[]{
-                        new PeqBand(FilterType.LSQ, 130, -4.5f, 0.71f),
-                        new PeqBand(FilterType.PK, 250, -2.0f, 1.50f),
+                "JA11 Studio",
+                new PeqSnapshot(-4.5f, new PeqBand[]{
+                        new PeqBand(FilterType.LSQ, 65, 4.0f, 0.71f),
+                        new PeqBand(FilterType.PK, 110, 1.2f, 1.30f),
+                        new PeqBand(FilterType.PK, 250, -2.2f, 1.20f),
+                        new PeqBand(FilterType.PK, 3800, -2.5f, 2.20f),
+                        new PeqBand(FilterType.HSQ, 8000, -1.5f, 0.71f)
+                }),
+                0,
+                1732599000000L
+        ));
+        list.add(new PeqProfile(
+                "builtin-warm-vocal",
+                "Warm Vocal & Acoustic",
+                I18n.tr(
+                        "Tôn giọng ca sĩ dày ấm và nhạc cụ mộc mạc cho Pop, Ballad, Jazz & Lo-Fi — nghe lâu không mệt.",
+                        "Intimate, lush vocals and natural acoustic instruments for Pop, Ballad, Jazz & Lo-Fi."
+                ),
+                "curated",
+                "JadeAudio JA11",
+                "JA11 Studio",
+                new PeqSnapshot(-3.5f, new PeqBand[]{
+                        new PeqBand(FilterType.PK, 180, -2.0f, 1.00f),
+                        new PeqBand(FilterType.PK, 750, 2.4f, 0.90f),
+                        new PeqBand(FilterType.PK, 2000, 1.2f, 1.40f),
+                        new PeqBand(FilterType.PK, 4500, -3.0f, 2.50f),
+                        new PeqBand(FilterType.HSQ, 7500, -2.2f, 0.71f)
+                }),
+                0,
+                1732598000000L
+        ));
+        list.add(new PeqProfile(
+                "builtin-podcast-voice",
+                "Podcast & Voice Clarity",
+                I18n.tr(
+                        "Giảm ù nền dải trầm và cắt rít chữ 's/x', giúp giọng nói cực rõ cho Podcast, Sách nói & Học tập.",
+                        "Cuts low-end rumble and sharp s/sh sibilance for crystal-clear speech in Podcasts & Calls."
+                ),
+                "curated",
+                "JadeAudio JA11",
+                "JA11 Studio",
+                new PeqSnapshot(-2.5f, new PeqBand[]{
+                        new PeqBand(FilterType.LSQ, 120, -4.5f, 0.71f),
+                        new PeqBand(FilterType.PK, 250, -2.0f, 1.40f),
                         new PeqBand(FilterType.PK, 1500, 2.0f, 1.00f),
                         new PeqBand(FilterType.PK, 3000, 1.5f, 1.60f),
-                        new PeqBand(FilterType.PK, 6000, -3.5f, 2.20f)
+                        new PeqBand(FilterType.PK, 6500, -3.5f, 2.20f)
                 }),
                 0,
-                1732540000000L
+                1732597000000L
         ));
         list.add(new PeqProfile(
-                "builtin-jd1-phonk-orig",
-                "JD1 + JA11 | Phonk & 808 Original",
-                "Bản backup nguyên gốc file Phonk & 808 Bass.xml trên máy tính của bạn.",
+                "builtin-fps-gaming",
+                "FPS Gaming & Footsteps",
+                I18n.tr(
+                        "Hạ rền tiếng nổ gây choáng, đẩy dải bước chân & hướng di chuyển (1.2k–2.5kHz) cho CS2 / Valorant / PUBG.",
+                        "Lowers bass boom from explosions while highlighting footsteps & directional cues (1.2k–2.5kHz)."
+                ),
                 "curated",
                 "JadeAudio JA11",
-                "Backup gốc",
-                new PeqSnapshot(-4f, new PeqBand[]{
-                        new PeqBand(FilterType.LSQ, 80, 3.5f, 0.70f),
-                        new PeqBand(FilterType.PK, 240, -2.5f, 1.20f),
-                        new PeqBand(FilterType.PK, 1800, 1.5f, 1.00f),
-                        new PeqBand(FilterType.PK, 4500, -2.5f, 2.00f),
-                        new PeqBand(FilterType.PK, 8000, -3.0f, 2.00f)
+                "JA11 Studio",
+                new PeqSnapshot(-3.5f, new PeqBand[]{
+                        new PeqBand(FilterType.LSQ, 110, -4.0f, 0.71f),
+                        new PeqBand(FilterType.PK, 240, -2.0f, 1.20f),
+                        new PeqBand(FilterType.PK, 1700, 3.0f, 1.30f),
+                        new PeqBand(FilterType.PK, 4200, -3.2f, 2.60f),
+                        new PeqBand(FilterType.HSQ, 8000, -1.5f, 0.71f)
                 }),
                 0,
-                1732535000000L
+                1732596000000L
         ));
         list.add(new PeqProfile(
-                "builtin-jd1-harman",
-                "FiiO JD1 → Harman IE 2019v2",
-                "Cân chỉnh FiiO JD1 bám sát đường cong chuẩn Harman In-Ear 2019.",
-                "curated",
-                "JadeAudio JA11",
-                "AutoEQ / Harman",
-                new PeqSnapshot(-8.5f, new PeqBand[]{
-                        new PeqBand(FilterType.LSQ, 85, 1.8f, 0.71f),
-                        new PeqBand(FilterType.PK, 195, -3.2f, 1.10f),
-                        new PeqBand(FilterType.PK, 720, 1.9f, 1.00f),
-                        new PeqBand(FilterType.PK, 3450, -2.5f, 2.20f),
-                        new PeqBand(FilterType.PK, 7800, -3.0f, 2.00f)
-                }),
-                0,
-                1732530000000L
-        ));
-        list.add(new PeqProfile(
-                "builtin-flat",
+                "builtin-flat-reference",
                 "Flat Studio Reference (0 dB)",
-                "Đường đáp tuyến phẳng trung tính kiểm âm nguyên bản.",
+                I18n.tr(
+                        "Đường đáp tuyến phẳng trung tính 0 dB — lý tưởng để so sánh gốc hoặc tự tạo cấu hình EQ mới.",
+                        "Pure neutral 0 dB reference — ideal for A/B comparison or building your own EQ from scratch."
+                ),
                 "curated",
                 "JadeAudio JA11",
                 "Reference",
                 PeqSnapshot.flatNeutral(),
                 0,
-                1732525000000L
+                1732595000000L
         ));
         return list;
     }
@@ -181,11 +201,28 @@ public final class PresetRepository {
         if (raw == null || raw.isEmpty()) {
             List<PeqProfile> builtins = getBuiltinProfiles();
             saveVaultProfiles(builtins);
+            prefs.edit().putInt(KEY_VAULT_VER, CURRENT_VAULT_VER).apply();
             return builtins;
         }
         List<PeqProfile> parsed = deserializeList(raw);
         if (parsed.isEmpty()) {
-            return getBuiltinProfiles();
+            List<PeqProfile> builtins = getBuiltinProfiles();
+            saveVaultProfiles(builtins);
+            prefs.edit().putInt(KEY_VAULT_VER, CURRENT_VAULT_VER).apply();
+            return builtins;
+        }
+        // Migrate legacy personal built-ins -> universal starter presets while keeping user-created profiles
+        if (prefs.getInt(KEY_VAULT_VER, 1) < CURRENT_VAULT_VER) {
+            List<PeqProfile> migrated = new ArrayList<>();
+            for (PeqProfile p : parsed) {
+                if (p != null && p.id != null && !p.id.startsWith("builtin-")) {
+                    migrated.add(p);
+                }
+            }
+            migrated.addAll(getBuiltinProfiles());
+            saveVaultProfiles(migrated);
+            prefs.edit().putInt(KEY_VAULT_VER, CURRENT_VAULT_VER).apply();
+            return migrated;
         }
         return parsed;
     }

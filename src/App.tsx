@@ -29,9 +29,9 @@ import { WebHidTransport } from './transports/webHidTransport';
 export const App: React.FC = () => {
   const [lang, setLang] = useState<Lang>(() => detectInitialLang());
   const [engineState, setEngineState] = useState<EngineState>(() => ja11Engine.getState());
-  const [selectedBand, setSelectedBand] = useState(3); // Default Band 4 (4380Hz ear peak)
+  const [selectedBand, setSelectedBand] = useState(3); // Default Band 4 (Upper-Mid / Ear Peak)
   const [activeSweepHz, setActiveSweepHz] = useState<number | null>(null);
-  const [activeProfileName, setActiveProfileName] = useState<string>('JD1 + JA11 | Custom Ear 4380Hz');
+  const [activeProfileName, setActiveProfileName] = useState<string>('Harman Balanced (All-Rounder)');
   const [dragOverlay, setDragOverlay] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 

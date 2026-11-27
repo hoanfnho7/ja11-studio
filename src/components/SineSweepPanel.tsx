@@ -9,7 +9,7 @@ interface Props {
 }
 
 export const SineSweepPanel: React.FC<Props> = ({ lang, onActiveFreqChange, onAssignPeakToBand4 }) => {
-  const [freq, setFreq] = useState(4380);
+  const [freq, setFreq] = useState(4000);
   const [playing, setPlaying] = useState(false);
   const [sweeping, setSweeping] = useState(false);
   const [volume, setVolume] = useState(15);
@@ -313,7 +313,7 @@ export const SineSweepPanel: React.FC<Props> = ({ lang, onActiveFreqChange, onAs
 
       <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
         <span className="text-slate-400">{tr(lang, 'Mốc nhanh:', 'Quick Refs:')}</span>
-        {[55, 185, 680, 3200, 4380, 7500].map((hz) => (
+        {[55, 185, 680, 3000, 4500, 7500].map((hz) => (
           <button
             key={hz}
             onClick={() => {
@@ -326,7 +326,7 @@ export const SineSweepPanel: React.FC<Props> = ({ lang, onActiveFreqChange, onAs
                 : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
             }`}
           >
-            {hz === 4380 ? tr(lang, '4380Hz (Đỉnh tai)', '4380Hz (Ear Peak)') : `${hz}Hz`}
+            {hz === 4500 ? tr(lang, '4.5kHz (Đỉnh tai)', '4.5kHz (Ear Peak)') : `${hz}Hz`}
           </button>
         ))}
       </div>

@@ -4,17 +4,30 @@ import { PeqProfile, PeqSnapshot, cloneSnapshot } from '../core/ja11Protocol';
 import { isRunningInsideAndroidApk } from '../transports/androidUsbTransport';
 
 const VAULT_STORAGE_KEY = 'ja11_studio_vault_v1';
+const VAULT_VER_KEY = 'ja11_studio_vault_ver';
+const CURRENT_VAULT_VER = '2';
 
 export function loadVaultProfiles(): PeqProfile[] {
   try {
     const raw = localStorage.getItem(VAULT_STORAGE_KEY);
     if (!raw) {
       localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(BUILTIN_PROFILES));
+      localStorage.setItem(VAULT_VER_KEY, CURRENT_VAULT_VER);
       return [...BUILTIN_PROFILES];
     }
     const parsed = JSON.parse(raw) as PeqProfile[];
     if (!Array.isArray(parsed) || parsed.length === 0) {
+      localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(BUILTIN_PROFILES));
+      localStorage.setItem(VAULT_VER_KEY, CURRENT_VAULT_VER);
       return [...BUILTIN_PROFILES];
+    }
+    // Migrate legacy personal built-ins -> universal starter presets while preserving user-created profiles
+    if (localStorage.getItem(VAULT_VER_KEY) !== CURRENT_VAULT_VER) {
+      const userCustom = parsed.filter((p) => p && typeof p.id === 'string' && !p.id.startsWith('builtin-'));
+      const migrated = [...userCustom, ...BUILTIN_PROFILES];
+      localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(migrated));
+      localStorage.setItem(VAULT_VER_KEY, CURRENT_VAULT_VER);
+      return migrated;
     }
     return parsed;
   } catch {
