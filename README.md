@@ -12,6 +12,18 @@ An open-source, high-precision hardware controller for the **FiiO / JadeAudio JA
 
 ---
 
+## 📸 Ảnh chụp giao diện thực tế (Screenshots)
+
+<div align="center">
+
+| 📊 WEB | ⚡ MOBILE |
+| :---: | :---: |
+| <img width="1763" height="895" alt="image" src="https://github.com/user-attachments/assets/70a895be-1880-4603-8cef-e5618e566e2f" alt="WEB"/> | <img width="1080" height="2376" alt="Screenshot_20261127_233746" src="https://github.com/user-attachments/assets/c3e88b57-858b-4674-9dae-610805f26673" alt="MOBILE"/> |
+
+</div>
+
+---
+
 ## ✨ Key Features
 
 1. **Real-Time RAM PEQ Dragging (100% Flash-Safe):**
