@@ -36,6 +36,7 @@ import {
 interface Props {
   currentLivePeq: PeqSnapshot;
   activeProfileName: string;
+  isSyncing?: boolean;
   onPreviewProfileLive: (profile: PeqProfile) => void;
   onNotify: (msg: string) => void;
 }
@@ -43,6 +44,7 @@ interface Props {
 export const PresetVaultAndCloud: React.FC<Props> = ({
   currentLivePeq,
   activeProfileName,
+  isSyncing = false,
   onPreviewProfileLive,
   onNotify,
 }) => {
@@ -174,7 +176,7 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
   const totalPages = Math.max(1, Math.ceil(totalRows / 18));
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 space-y-3 text-xs">
+    <div className="bg-slate-900/85 border border-slate-800 rounded-xl p-3.5 space-y-3 text-xs xl:h-[calc(100vh-88px)] xl:flex xl:flex-col">
       {/* Tabs Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
         <div className="flex items-center gap-1.5">
@@ -238,8 +240,8 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
       </div>
 
       {tab === 'vault' ? (
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2 bg-slate-950/60 border border-slate-800 rounded-lg p-2.5">
+        <div className="space-y-3 xl:flex-1 xl:flex xl:flex-col xl:min-h-0">
+          <div className="flex flex-wrap items-center gap-2 bg-slate-950/60 border border-slate-800 rounded-lg p-2.5 shrink-0">
             <input
               type="text"
               placeholder="Đặt tên Profile mới (VD: JD1 Podcast êm tai)..."
@@ -280,7 +282,7 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2 gap-2.5 xl:flex-1 xl:overflow-y-auto xl:content-start pr-1">
             {visibleVault.map((p) => {
               const isAct = activeProfileName === p.name;
               return (
@@ -314,7 +316,7 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
                       }`}
                     >
                       {isAct ? <CheckCircle2 className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                      {isAct ? 'Đang nạp trên đồ thị' : 'Nghe thử Live (RAM)'}
+                      {isAct ? (isSyncing ? 'Đang gửi...' : 'Đang áp dụng') : 'Nghe thử Live (RAM)'}
                     </button>
 
                     <div className="flex items-center gap-1">
@@ -341,8 +343,8 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="space-y-3 xl:flex-1 xl:flex xl:flex-col xl:min-h-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <input
               type="text"
               placeholder="Tìm tên Profile trên FiiO Hand-Picked hoặc tên IEM AutoEQ (VD: podcast, phonk, jd1, chu 2)..."
@@ -444,7 +446,7 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2 gap-2.5 xl:flex-1 xl:overflow-y-auto xl:content-start pr-1">
             {cloudList.map((p) => {
               const isAct = activeProfileName === p.name;
               return (
@@ -488,7 +490,7 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
                       }`}
                     >
                       {isAct ? <CheckCircle2 className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                      {isAct ? 'Đang nạp trên đồ thị' : 'Nghe thử Live'}
+                      {isAct ? (isSyncing ? 'Đang gửi...' : 'Đang áp dụng') : 'Nghe thử Live'}
                     </button>
 
                     <div className="flex items-center gap-1">

@@ -355,7 +355,7 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         className={`w-full rounded-xl border border-slate-800 cursor-grab active:cursor-grabbing touch-none transition-[height] duration-200 ${
-          compactDocked ? 'h-36 sm:h-44' : 'h-60 sm:h-72'
+          compactDocked ? 'h-36 sm:h-44' : 'h-60 sm:h-64 xl:h-[290px] 2xl:h-[330px]'
         }`}
       />
       {!compactDocked && (

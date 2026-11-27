@@ -1,3 +1,4 @@
+import { decryptFiioBrowserData, encryptFiioBrowserPayload } from '../core/fiioCrypto';
 import { parseAutoEqTxt } from '../core/fiioXml';
 import { PeqBand, PeqProfile, adaptBandsToJa11, normalizeFilterType, normalizeMasterGain } from '../core/ja11Protocol';
 import { isRunningInsideAndroidApk } from '../transports/androidUsbTransport';
@@ -260,6 +261,50 @@ function mapFiioRecordToProfile(rec: RawFiioRecord, idx: number): PeqProfile | n
   };
 }
 
+async function postFiioDirectBrowser(
+  baseHost: string,
+  endpointPath: string,
+  payload: Record<string, unknown>,
+  settings: CloudSettings,
+): Promise<unknown> {
+  const plainJson = JSON.stringify(payload);
+  const isUcenter = endpointPath.startsWith('/ucenter-api/');
+  const encrypted = isUcenter ? encryptFiioBrowserPayload(plainJson) : null;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Accept: 'application/vnd.fiio.v1+json, application/json',
+  };
+  if (encrypted) {
+    headers['X-Request-ID'] = encrypted.requestId;
+  }
+  if (settings.authToken.trim()) {
+    const tok = settings.authToken.trim();
+    headers.Authorization = tok.startsWith('Bearer ') ? tok : `Bearer ${tok}`;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 18000);
+  try {
+    const resp = await fetch(`${baseHost}${endpointPath}`, {
+      method: 'POST',
+      headers,
+      body: encrypted ? encrypted.envelopeJson : plainJson,
+      signal: controller.signal,
+    });
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}`);
+    }
+    const parsed = (await resp.json()) as { code?: number; data?: unknown; msg?: string };
+    if (encrypted && parsed?.code === 200 && typeof parsed.data === 'string') {
+      parsed.data = decryptFiioBrowserData(encrypted.keyHex, parsed.data);
+    }
+    return parsed;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function postFiioEndpoint(
   endpointPath: string,
   payload: Record<string, unknown>,
@@ -290,6 +335,18 @@ async function postFiioEndpoint(
     return JSON.parse(rawResp);
   }
 
+  const isLocalDevServer =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  // On GitHub Pages / static HTTPS hosting: call FiiO directly using browser RSA+AES encryption!
+  // (FiiO server returns Access-Control-Allow-Origin for POST + X-Request-ID -> zero HTTP 405!)
+  if (!isLocalDevServer) {
+    const targetHost = trimmedRelay || 'https://fiiocontrol.fiio.com';
+    return await postFiioDirectBrowser(targetHost, endpointPath, payload, settings);
+  }
+
+  // On localhost: try local Node curl.exe proxy first, fall back to direct browser RSA+AES if proxy unavailable
   if (trimmedRelay) {
     headers['X-Fiio-Relay'] = trimmedRelay;
   }
@@ -303,6 +360,9 @@ async function postFiioEndpoint(
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
+    if (resp.status === 404 || resp.status === 405) {
+      return await postFiioDirectBrowser(trimmedRelay || 'https://fiiocontrol.fiio.com', endpointPath, payload, settings);
+    }
     if (!resp.ok) {
       const errJson = await resp.json().catch(() => ({}));
       throw new Error(errJson?.msg || `HTTP ${resp.status}`);
