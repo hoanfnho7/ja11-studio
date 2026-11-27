@@ -1,18 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Play, Square, Waves } from 'lucide-react';
+import { Crosshair, HelpCircle, Play, Square, Waves } from 'lucide-react';
 import { Lang, tr } from '../core/i18n';
 
 interface Props {
   lang: Lang;
   onActiveFreqChange: (hz: number | null) => void;
+  onAssignPeakToBand4?: (hz: number) => void;
 }
 
-export const SineSweepPanel: React.FC<Props> = ({ lang, onActiveFreqChange }) => {
+export const SineSweepPanel: React.FC<Props> = ({ lang, onActiveFreqChange, onAssignPeakToBand4 }) => {
   const [freq, setFreq] = useState(4380);
   const [playing, setPlaying] = useState(false);
   const [sweeping, setSweeping] = useState(false);
-  const [volume, setVolume] = useState(20);
+  const [volume, setVolume] = useState(15);
   const [pan, setPan] = useState<-1 | 0 | 1>(0);
+  const [showGuide, setShowGuide] = useState(false);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const oscRef = useRef<OscillatorNode | null>(null);
@@ -182,9 +184,27 @@ export const SineSweepPanel: React.FC<Props> = ({ lang, onActiveFreqChange }) =>
           </button>
 
           <span className="font-mono font-bold text-sm text-rose-400 ml-1">{freq} Hz</span>
+
+          {onAssignPeakToBand4 && (
+            <button
+              onClick={() => {
+                togglePlay(false);
+                onAssignPeakToBand4(freq);
+              }}
+              className="px-2 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/25 flex items-center gap-1 font-medium cursor-pointer transition"
+              title={tr(
+                lang,
+                'Đưa tần số đang chọn sang Band 4 (-3.8 dB, Q 3.2) để cắt chói',
+                'Assign this peak frequency to Band 4 (-3.8 dB, Q 3.2) to notch out harshness',
+              )}
+            >
+              <Crosshair className="w-3 h-3" />
+              {tr(lang, 'Gán B4', 'Set B4')}
+            </button>
+          )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <div className="inline-flex rounded-lg border border-slate-700 overflow-hidden">
             {([-1, 0, 1] as const).map((p) => (
               <button
@@ -211,8 +231,69 @@ export const SineSweepPanel: React.FC<Props> = ({ lang, onActiveFreqChange }) =>
             />
             <span className="font-mono w-8 text-right text-slate-200">{volume}%</span>
           </label>
+
+          <button
+            onClick={() => setShowGuide((v) => !v)}
+            className={`px-2 py-1 rounded-lg border flex items-center gap-1 cursor-pointer transition ${
+              showGuide
+                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            {tr(lang, 'Hướng dẫn', 'Guide')}
+          </button>
         </div>
       </div>
+
+      {showGuide && (
+        <div className="rounded-lg bg-slate-950/90 border border-amber-500/30 p-2.5 text-[11px] text-slate-300 space-y-1 leading-relaxed">
+          <div className="font-semibold text-amber-300">
+            {tr(
+              lang,
+              '💡 Dò đỉnh tai (Ear Sweep) dùng để làm gì?',
+              '💡 What is Ear Sweep for? (Beginner Guide)',
+            )}
+          </div>
+          <p className="text-slate-400">
+            {tr(
+              lang,
+              'Mỗi người có kích thước ống tai khác nhau nên tần số gây chói/rít chữ "s, x" trên cùng một tai nghe cũng khác nhau. Dùng công cụ này để tìm đúng điểm chói riêng của bạn:',
+              'Every ear canal has a different resonance peak, so the exact harsh/sibilant frequency varies from person to person even on the same IEM:',
+            )}
+          </p>
+          <ol className="list-decimal list-inside space-y-0.5 text-slate-300">
+            <li>
+              {tr(
+                lang,
+                'Giữ mức Âm thử nhỏ an toàn khoảng 12–15%.',
+                'Keep the test tone Level low and safe around 12–15%.',
+              )}
+            </li>
+            <li>
+              {tr(
+                lang,
+                'Bấm Tự quét 2k→10k — nghe tiếng sóng chạy chậm từ thấp lên cao.',
+                'Click Auto Sweep 2k→10k and listen as the pure sine tone rises.',
+              )}
+            </li>
+            <li>
+              {tr(
+                lang,
+                'Ngay chỗ tiếng đột nhiên nhô to / chói buốt nhất trong tai, bấm dừng quét.',
+                'The instant the tone sounds noticeably louder or sharpest in your ear, click to stop.',
+              )}
+            </li>
+            <li>
+              {tr(
+                lang,
+                'Bấm Gán B4 → tự động đẩy tần số đó lên Band 4 (-3.8 dB, Q 3.2) để gọt đỉnh chói (dùng Trái/Phải để test lệch 2 bên tai).',
+                'Click Set B4 → automatically notches that exact peak on Band 4 (-3.8 dB, Q 3.2). Use Left/Right to check L/R balance.',
+              )}
+            </li>
+          </ol>
+        </div>
+      )}
 
       <div className="flex items-center gap-2">
         <input

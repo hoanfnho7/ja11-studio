@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
+import android.text.TextUtils;
 import android.view.DisplayCutout;
 import android.view.Gravity;
 import android.view.View;
@@ -244,42 +245,40 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setGravity(Gravity.CENTER_VERTICAL);
         int ph = UiKit.dp(this, 10f);
-        int pv = UiKit.dp(this, 8f);
+        int pv = UiKit.dp(this, 7f);
         bar.setPadding(ph, pv, ph, pv);
 
-        // Brand emblem + title
+        // Compact brand emblem
         TextView logoBadge = UiKit.badge(this, "∿", UiKit.C_SURFACE_LOW, UiKit.C_AMBER_CONTAINER);
-        logoBadge.setTextSize(15f);
-        logoBadge.setPadding(UiKit.dp(this, 7f), UiKit.dp(this, 4f), UiKit.dp(this, 7f), UiKit.dp(this, 4f));
+        logoBadge.setTextSize(14f);
+        logoBadge.setSingleLine(true);
+        logoBadge.setPadding(UiKit.dp(this, 6f), UiKit.dp(this, 4f), UiKit.dp(this, 6f), UiKit.dp(this, 4f));
 
+        // Title column (strictly single-line with ellipsize so it NEVER wraps vertically on narrow screens!)
         LinearLayout titleCol = new LinearLayout(this);
         titleCol.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams tcLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        tcLp.leftMargin = UiKit.dp(this, 8f);
+        tcLp.leftMargin = UiKit.dp(this, 7f);
+        tcLp.rightMargin = UiKit.dp(this, 4f);
         titleCol.setLayoutParams(tcLp);
 
-        LinearLayout brandRow = new LinearLayout(this);
-        brandRow.setOrientation(LinearLayout.HORIZONTAL);
-        brandRow.setGravity(Gravity.CENTER_VERTICAL);
-        TextView brandTv = UiKit.label(this, "FiiO JA11", 15.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
-        TextView dspTag = UiKit.badge(this, "v3.2", UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT);
-        LinearLayout.LayoutParams dtLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        dtLp.leftMargin = UiKit.dp(this, 5f);
-        dspTag.setLayoutParams(dtLp);
-        brandRow.addView(brandTv);
-        brandRow.addView(dspTag);
+        TextView brandTv = UiKit.label(this, "FiiO JA11", 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
+        brandTv.setSingleLine(true);
+        brandTv.setEllipsize(TextUtils.TruncateAt.END);
 
-        topSubtitleTv = UiKit.label(this, tabSubtitle(activeTab), 9.5f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
+        topSubtitleTv = UiKit.label(this, "v3.2 • " + tabSubtitle(activeTab), 9.5f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
         topSubtitleTv.setSingleLine(true);
-        titleCol.addView(brandRow);
+        topSubtitleTv.setEllipsize(TextUtils.TruncateAt.END);
+        titleCol.addView(brandTv);
         titleCol.addView(topSubtitleTv);
 
         // EN / VI Instant Language Toggle Pill
-        langToggleBtn = UiKit.actionButton(this, I18n.code(), UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT, UiKit.C_BORDER, 8f, 10.5f);
-        langToggleBtn.setMinHeight(UiKit.dp(this, 34f));
-        langToggleBtn.setPadding(UiKit.dp(this, 8f), UiKit.dp(this, 4f), UiKit.dp(this, 8f), UiKit.dp(this, 4f));
+        langToggleBtn = UiKit.actionButton(this, I18n.code(), UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT, UiKit.C_BORDER, 7f, 10f);
+        langToggleBtn.setSingleLine(true);
+        langToggleBtn.setMinHeight(UiKit.dp(this, 32f));
+        langToggleBtn.setPadding(UiKit.dp(this, 7f), UiKit.dp(this, 4f), UiKit.dp(this, 7f), UiKit.dp(this, 4f));
         LinearLayout.LayoutParams lgLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lgLp.rightMargin = UiKit.dp(this, 5f);
+        lgLp.rightMargin = UiKit.dp(this, 4f);
         langToggleBtn.setLayoutParams(lgLp);
         langToggleBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
@@ -288,26 +287,28 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
             showToast(I18n.tr("Đã chuyển sang Tiếng Việt", "Switched to English"));
         });
 
-        // Right buttons: Connect/Disconnect + A/B Bypass
+        // Right buttons: Connect/Disconnect + A/B Bypass (all strictly single-line & compact!)
         connectBtn = UiKit.actionButton(
                 this,
                 I18n.tr("● Kết nối", "● Connect"),
                 UiKit.C_SURFACE_LOW,
                 UiKit.C_AMBER_TEXT,
                 UiKit.C_BORDER,
-                8f,
-                10.5f
+                7f,
+                10f
         );
-        connectBtn.setMinHeight(UiKit.dp(this, 34f));
-        connectBtn.setPadding(UiKit.dp(this, 9f), UiKit.dp(this, 4f), UiKit.dp(this, 9f), UiKit.dp(this, 4f));
+        connectBtn.setSingleLine(true);
+        connectBtn.setMinHeight(UiKit.dp(this, 32f));
+        connectBtn.setPadding(UiKit.dp(this, 8f), UiKit.dp(this, 4f), UiKit.dp(this, 8f), UiKit.dp(this, 4f));
         connectBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
             usbController.connectAsync(false);
         });
 
-        disconnectBtn = UiKit.actionButton(this, "✕", UiKit.C_SURFACE_LOW, UiKit.C_TEXT_MUTED, UiKit.C_BORDER, 8f, 10.5f);
-        disconnectBtn.setMinHeight(UiKit.dp(this, 34f));
-        disconnectBtn.setPadding(UiKit.dp(this, 8f), UiKit.dp(this, 4f), UiKit.dp(this, 8f), UiKit.dp(this, 4f));
+        disconnectBtn = UiKit.actionButton(this, "✕", UiKit.C_SURFACE_LOW, UiKit.C_TEXT_MUTED, UiKit.C_BORDER, 7f, 10f);
+        disconnectBtn.setSingleLine(true);
+        disconnectBtn.setMinHeight(UiKit.dp(this, 32f));
+        disconnectBtn.setPadding(UiKit.dp(this, 7f), UiKit.dp(this, 4f), UiKit.dp(this, 7f), UiKit.dp(this, 4f));
         disconnectBtn.setVisibility(View.GONE);
         LinearLayout.LayoutParams dcLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dcLp.leftMargin = UiKit.dp(this, 4f);
@@ -319,17 +320,18 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
 
         abBypassBtn = UiKit.actionButton(
                 this,
-                I18n.tr("⇄ EQ BẬT", "⇄ EQ ON"),
+                I18n.tr("EQ BẬT", "EQ ON"),
                 UiKit.C_AMBER_CONTAINER,
                 UiKit.C_ON_AMBER,
                 Color.TRANSPARENT,
-                8f,
-                10.5f
+                7f,
+                10f
         );
-        abBypassBtn.setMinHeight(UiKit.dp(this, 34f));
-        abBypassBtn.setPadding(UiKit.dp(this, 9f), UiKit.dp(this, 4f), UiKit.dp(this, 9f), UiKit.dp(this, 4f));
+        abBypassBtn.setSingleLine(true);
+        abBypassBtn.setMinHeight(UiKit.dp(this, 32f));
+        abBypassBtn.setPadding(UiKit.dp(this, 8f), UiKit.dp(this, 4f), UiKit.dp(this, 8f), UiKit.dp(this, 4f));
         LinearLayout.LayoutParams abLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        abLp.leftMargin = UiKit.dp(this, 5f);
+        abLp.leftMargin = UiKit.dp(this, 4f);
         abBypassBtn.setLayoutParams(abLp);
         abBypassBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
@@ -520,7 +522,7 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
     private void selectTab(int idx) {
         activeTab = Math.max(0, Math.min(3, idx));
         HardwareState hw = usbController.getHardwareState();
-        topSubtitleTv.setText(hw.connected ? tabSubtitle(activeTab) : I18n.tr("Chờ kết nối USB-C DAC", "Waiting for USB-C DAC"));
+        topSubtitleTv.setText(hw.connected ? ("v3.2 • " + tabSubtitle(activeTab)) : I18n.tr("v3.2 • Chờ USB-C DAC", "v3.2 • Waiting USB-C"));
         for (int i = 0; i < 4; i++) {
             boolean act = hw.connected && (i == activeTab);
             tabViews[i].setVisibility(act ? View.VISIBLE : View.GONE);
@@ -543,31 +545,31 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
         boolean eqOn = (hw.eqPreset != 4);
 
         if (hw.connected) {
-            connectBtn.setText(I18n.tr("● Đã nối", "● Linked"));
+            connectBtn.setText("● USB");
             connectBtn.setTextColor(UiKit.C_CYAN_TEXT);
             disconnectBtn.setVisibility(View.VISIBLE);
             abBypassBtn.setVisibility(View.VISIBLE);
             connectGateView.setVisibility(View.GONE);
             bottomNavBarView.setVisibility(View.VISIBLE);
-            topSubtitleTv.setText(tabSubtitle(activeTab));
+            topSubtitleTv.setText("v3.2 • " + tabSubtitle(activeTab));
             for (int i = 0; i < 4; i++) {
                 tabViews[i].setVisibility(i == activeTab ? View.VISIBLE : View.GONE);
             }
         } else {
-            connectBtn.setText(hw.syncing ? I18n.tr("⏳ Đang nối...", "⏳ Linking...") : I18n.tr("● Kết nối", "● Connect"));
+            connectBtn.setText(hw.syncing ? "⏳ ..." : I18n.tr("● Kết nối", "● Connect"));
             connectBtn.setTextColor(UiKit.C_AMBER_TEXT);
             disconnectBtn.setVisibility(View.GONE);
             abBypassBtn.setVisibility(View.GONE);
             connectGateView.setVisibility(View.VISIBLE);
             bottomNavBarView.setVisibility(View.GONE);
-            topSubtitleTv.setText(I18n.tr("Chờ kết nối USB-C DAC", "Waiting for USB-C DAC"));
+            topSubtitleTv.setText(I18n.tr("v3.2 • Chờ USB-C DAC", "v3.2 • Waiting USB-C"));
             gateStatusTv.setText(hw.statusMessage);
             for (int i = 0; i < 4; i++) {
                 tabViews[i].setVisibility(View.GONE);
             }
         }
 
-        abBypassBtn.setText(eqOn ? I18n.tr("⇄ EQ BẬT", "⇄ EQ ON") : I18n.tr("⇄ EQ TẮT", "⇄ EQ OFF"));
+        abBypassBtn.setText(eqOn ? I18n.tr("EQ BẬT", "EQ ON") : I18n.tr("EQ TẮT", "EQ OFF"));
         abBypassBtn.setBackground(UiKit.rippleBox(
                 this,
                 eqOn ? UiKit.C_AMBER_CONTAINER : UiKit.C_SURFACE_HIGH,

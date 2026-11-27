@@ -636,7 +636,22 @@ export const App: React.FC = () => {
             </div>
 
             {/* Integrated Sine Sweep Ear Calibrator */}
-            <SineSweepPanel lang={lang} onActiveFreqChange={setActiveSweepHz} />
+            <SineSweepPanel
+              lang={lang}
+              onActiveFreqChange={setActiveSweepHz}
+              onAssignPeakToBand4={(hz) => {
+                setSelectedBand(3);
+                setActiveProfileName(tr(lang, `Tùy chỉnh đỉnh ${hz}Hz`, `Custom ${hz}Hz Peak`));
+                ja11Engine.updateBandLive(3, { type: 'PK', freq: hz, gain: -3.8, q: 3.2 });
+                showToast(
+                  tr(
+                    lang,
+                    `Đã gán ${hz} Hz vào Band 4 (-3.8 dB, Q 3.20) để cắt chói!`,
+                    `Assigned ${hz} Hz to Band 4 (-3.8 dB, Q 3.20) to notch peak!`,
+                  ),
+                );
+              }}
+            />
 
             <div className="hidden xl:flex items-center gap-2 px-1 text-[11px] text-slate-400">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />

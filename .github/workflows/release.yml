@@ -31,18 +31,18 @@ jobs:
 
             Real-time 5-Band Hardware PEQ, Hardware DAC Volume (0–60), Ear Peak Sweep, and Offline/Cloud Preset Studio for **FiiO / JadeAudio JA11** (`KT02H20`) — now with **full English & Vietnamese (`EN | VI`)** bilingual support across Web and Android!
 
-            ### ✨ What's New in v3.2.0
-            - **Full Bilingual `EN | VI` Switcher:** Auto-detects OS/browser language (defaults to English internationally, Vietnamese on Vietnamese systems) with an instant **EN / VI** toggle in the top header (switches cleanly on Android without dropping your active USB-C OTG connection).
-            - **KT02H20 Crackle-Free Volume Guard:** Highlights the clean `32–60/60` DAC hardware volume zone (`32 (Min)` & `48 (Clean)` shortcuts) and warns below `32/60`.
-            - **Direct FiiO Hand-Picked Cloud on GitHub Pages:** Zero-backend browser RSA+AES-256-ECB client fetches `814+` JA11 presets directly from FiiO servers.
+            ### ✨ What's New in v3.2.1
+            - **Ear Sweep Beginner's Guide (`EN | VI`)**: Added a collapsible beginner walkthrough on Android and Web explaining how to find & notch out ear-canal resonance peaks (plus 1-click **Set B4** on Web as well).
+            - **Fixed Android Vietnamese TopBar Layout**: Compact single-line header pills (`● USB` + `✕` + `EQ BẬT`) prevent title/button wrapping on narrow screens in Vietnamese mode.
+            - **Full Bilingual `EN | VI` Switcher & KT02H20 `< 32/60` Volume Guard**.
 
-            ### 📱 Android Pure Native App (`JA11-Studio-v3.2.apk`)
+            ### 📱 Android Pure Native App (`JA11-Studio-v3.2.1.apk`)
             - **100% Pure Native Android (Zero WebView):** 120Hz Skia Canvas PEQ graph, 2-finger pinch Q-factor, 48kHz Float32 `AudioTrack` sine sweep, and USB-C OTG HID auto-framing (`Report ID = 2`).
-            - Download **`JA11-Studio-v3.2.apk`** under **Assets** below and install directly.
+            - Download **`JA11-Studio-v3.2.1.apk`** under **Assets** below and install directly.
 
             ### 💻 Web Studio (Desktop Chrome / Edge / Opera)
             - Launch live at [https://hoanfnho7.github.io/ja11-studio/](https://hoanfnho7.github.io/ja11-studio/) — plug in your JA11 and click **Connect**.
           files: |
-            release/JA11-Studio-v3.2.apk
+            release/JA11-Studio-v3.2.1.apk
           draft: false
           prerelease: false

@@ -72,7 +72,7 @@ Write-Host "[5/6] Aligning APK on 4-byte boundary (zipalign)..."
 & "$buildTools\zipalign.exe" -f -p 4 "$buildDir\unaligned.apk" "$buildDir\aligned.apk"
 if ($LASTEXITCODE -ne 0) { throw "zipalign failed" }
 
-Write-Host "[6/6] Signing & verifying JA11-Studio-v3.2.apk (APK Signature Scheme v2 + v3)..."
+Write-Host "[6/6] Signing & verifying JA11-Studio-v3.2.1.apk (APK Signature Scheme v2 + v3)..."
 $keystore = Join-Path $root "android\ja11studio-release.jks"
 if (-not (Test-Path $keystore)) {
     & "$jbrBin\keytool.exe" -genkeypair `
@@ -83,7 +83,7 @@ if (-not (Test-Path $keystore)) {
         -dname "CN=JA11 Studio, OU=Audio, O=JA11Studio, L=HCM, ST=VN, C=VN" | Out-Null
 }
 
-$outApk = Join-Path $releaseDir "JA11-Studio-v3.2.apk"
+$outApk = Join-Path $releaseDir "JA11-Studio-v3.2.1.apk"
 & "$buildTools\apksigner.bat" sign `
     --ks $keystore `
     --ks-key-alias ja11studio `

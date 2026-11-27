@@ -52,16 +52,70 @@ public final class TabSweepView extends ScrollView {
         root.setPadding(padH, UiKit.dp(ctx, 10f), padH, UiKit.dp(ctx, 24f));
         addView(root, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        // 1. Advisory Banner
-        LinearLayout banner = UiKit.cardContainer(ctx, 10f);
-        banner.setOrientation(LinearLayout.HORIZONTAL);
-        banner.setGravity(Gravity.CENTER_VERTICAL);
-        TextView bTxt = UiKit.label(ctx, I18n.tr("🎧 Đo đỉnh cộng hưởng ống tai (Ear Sweep)", "🎧 Ear Canal Resonance Sweep"), 11.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO_BOLD);
-        bTxt.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        TextView bTag = UiKit.badge(ctx, "PCM 48kHz", UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT);
-        banner.addView(bTxt);
-        banner.addView(bTag);
-        root.addView(banner, UiKit.matchWrapBottomMargin(ctx, 10f));
+        // 1. Advisory Banner + Collapsible Beginner's Guide Card
+        LinearLayout guideCard = UiKit.cardContainer(ctx, 10f);
+        guideCard.setBackground(UiKit.roundedBox(ctx, UiKit.C_SURFACE_CONTAINER, 11f, UiKit.C_BORDER, 0.9f));
+
+        LinearLayout guideHdr = new LinearLayout(ctx);
+        guideHdr.setOrientation(LinearLayout.HORIZONTAL);
+        guideHdr.setGravity(Gravity.CENTER_VERTICAL);
+        TextView gTitle = UiKit.label(
+                ctx,
+                I18n.tr("💡 Dò đỉnh tai là gì? (Hướng dẫn)", "💡 What is Ear Sweep? (Guide)"),
+                12f,
+                UiKit.C_AMBER_TEXT,
+                UiKit.FONT_SANS_BOLD
+        );
+        gTitle.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        TextView gToggle = UiKit.actionButton(
+                ctx,
+                I18n.tr("Thu gọn ▴", "Hide ▴"),
+                UiKit.C_SURFACE_HIGH,
+                UiKit.C_CYAN_TEXT,
+                Color.TRANSPARENT,
+                6f,
+                9.5f
+        );
+        gToggle.setSingleLine(true);
+        gToggle.setMinHeight(UiKit.dp(ctx, 26f));
+        gToggle.setPadding(UiKit.dp(ctx, 8f), UiKit.dp(ctx, 3f), UiKit.dp(ctx, 8f), UiKit.dp(ctx, 3f));
+
+        guideHdr.addView(gTitle);
+        guideHdr.addView(gToggle);
+        guideCard.addView(guideHdr);
+
+        final TextView guideBody = UiKit.label(
+                ctx,
+                I18n.tr(
+                        "Tìm đúng tần số gây chói/buốt tai hoặc rít âm 's/x' riêng cho ống tai & tai nghe của bạn:\n"
+                                + "• Bước 1: Giữ Âm lượng sóng thử nhỏ an toàn (12–15%).\n"
+                                + "• Bước 2: Bấm 'Tự quét 2k→10k' — nghe tiếng tút chạy từ thấp lên cao.\n"
+                                + "• Bước 3: Tới đúng chỗ tiếng nhô to hoặc chói buốt nhất, bấm 'Dừng tại đây'.\n"
+                                + "• Bước 4: Bấm '⊕ Gán vào B4' → app tự cắt gọt đúng đỉnh đó (-3.8 dB) giúp nghe nhạc êm tai hẳn!\n"
+                                + "• Mẹo thêm: Dùng nút Trái / Phải để kiểm tra lệch âm 2 bên tai nghe.",
+                        "Find the exact frequency causing harshness or 's/sh' sibilance for YOUR ear canal + IEM:\n"
+                                + "• Step 1: Keep test tone volume safe and low (12–15%).\n"
+                                + "• Step 2: Tap 'Auto Sweep 2k→10k' and listen as the tone rises.\n"
+                                + "• Step 3: The instant it sounds noticeably louder or sharpest, tap 'Stop Here'.\n"
+                                + "• Step 4: Tap '⊕ Set Band 4' → notches out that exact peak (-3.8 dB) for fatigue-free sound!\n"
+                                + "• Bonus: Use Left / Right routing to test channel balance or 55 Hz to check bass seal."
+                ),
+                11f,
+                UiKit.C_TEXT_MUTED,
+                UiKit.FONT_SANS
+        );
+        guideBody.setPadding(0, UiKit.dp(ctx, 6f), 0, 0);
+        guideBody.setLineSpacing(UiKit.dp(ctx, 2f), 1.0f);
+        guideCard.addView(guideBody);
+
+        final boolean[] guideOpen = {true};
+        gToggle.setOnClickListener(v -> {
+            UiKit.hapticTick(v);
+            guideOpen[0] = !guideOpen[0];
+            guideBody.setVisibility(guideOpen[0] ? VISIBLE : GONE);
+            gToggle.setText(guideOpen[0] ? I18n.tr("Thu gọn ▴", "Hide ▴") : I18n.tr("Xem ▾", "Show ▾"));
+        });
+        root.addView(guideCard, UiKit.matchWrapBottomMargin(ctx, 10f));
 
         // 2. Hero Sine Generator Card
         LinearLayout heroCard = UiKit.cardContainer(ctx, 12f);
