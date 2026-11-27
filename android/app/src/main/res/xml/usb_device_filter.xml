@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- FiiO / JadeAudio JA11 UAC 1.0 (0x2972:0x0101) & UAC 2.0 (0x2972:0x0102) -->
+    <usb-device vendor-id="10610" product-id="257" />
+    <usb-device vendor-id="10610" product-id="258" />
+</resources>

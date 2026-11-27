@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="28" fill="#090d16"/>
+  <rect x="8" y="8" width="112" height="112" rx="22" fill="#0f172a" stroke="#06b6d4" stroke-width="4"/>
+  <path d="M22 76 C 36 40, 50 96, 64 58 C 78 24, 92 86, 106 48" fill="none" stroke="#22d3ee" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="44" cy="70" r="6" fill="#f59e0b"/>
+  <circle cx="76" cy="40" r="6" fill="#10b981"/>
+  <text x="64" y="108" text-anchor="middle" fill="#e2e8f0" font-family="monospace" font-weight="bold" font-size="18">JA11</text>
+</svg>

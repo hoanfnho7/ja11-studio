@@ -1,0 +1,20 @@
+# Dependencies & build outputs
+node_modules/
+dist/
+android/build/
+
+# Private signing keys (NEVER commit keystores!)
+*.jks
+*.keystore
+
+# Local archives & older intermediate APK builds
+*.rar
+*.idsig
+release/JA11-Studio-v1.*.apk
+release/JA11-Studio-v2.*.apk
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
