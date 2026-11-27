@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release tag (e.g. v3.0.0)'
+        description: 'Release tag (e.g. v3.2.0)'
         required: true
-        default: 'v3.0.0'
+        default: 'v3.2.0'
 
 permissions:
   contents: write
@@ -25,20 +25,24 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name != 'main' && github.ref_name || inputs.tag_name }}
-          name: "FiiO JA11 Studio ${{ github.ref_name != 'main' && github.ref_name || inputs.tag_name }} — Pure Native Android 120Hz & WebHID PWA"
+          name: "FiiO JA11 Studio ${{ github.ref_name != 'main' && github.ref_name || inputs.tag_name }} — Bilingual EN/VI • Pure Native Android 120Hz & WebHID"
           body: |
             ## 🎧 FiiO / JadeAudio JA11 Studio (${{ github.ref_name != 'main' && github.ref_name || inputs.tag_name }})
-            
-            Bộ điều khiển DSP PEQ 5-Band thời gian thực, Âm lượng phần cứng DAC (0–60), Máy quét cộng hưởng ống tai (Ear Peak Sweep) và Kho Profile Offline/Online dành cho **FiiO / JadeAudio JA11**.
-            
-            ### 📱 Cài đặt trên Điện thoại Android (`JA11-Studio-v3.0.apk`)
-            - **100% Pure Native Android (Zero WebView):** Đồ thị Skia Canvas mượt 120Hz, chụm 2 ngón (Pinch) đổi độ rộng `Q`, phát sóng Sin `AudioTrack` PCM 48kHz.
-            - **USB-C OTG HID thông minh:** Tự nhận diện đúng kênh Vendor DSP `Report ID = 2` (kể cả khi bật Inline Mic), tách biệt hoàn toàn nghe thử Live trên RAM với lưu cứng Flash NVRAM (`0x19`).
-            - Tải file **`JA11-Studio-v3.0.apk`** bên dưới mục **Assets** và cài đặt trực tiếp.
-            
-            ### 💻 Sử dụng trực tiếp trên Máy tính (Không cần cài đặt)
-            - Mở trang **GitHub Pages** bằng **Chrome / Edge / Opera**, cắm JA11 vào cổng USB và bấm **Kết nối**.
+
+            Real-time 5-Band Hardware PEQ, Hardware DAC Volume (0–60), Ear Peak Sweep, and Offline/Cloud Preset Studio for **FiiO / JadeAudio JA11** (`KT02H20`) — now with **full English & Vietnamese (`EN | VI`)** bilingual support across Web and Android!
+
+            ### ✨ What's New in v3.2.0
+            - **Full Bilingual `EN | VI` Switcher:** Auto-detects OS/browser language (defaults to English internationally, Vietnamese on Vietnamese systems) with an instant **EN / VI** toggle in the top header (switches cleanly on Android without dropping your active USB-C OTG connection).
+            - **KT02H20 Crackle-Free Volume Guard:** Highlights the clean `32–60/60` DAC hardware volume zone (`32 (Min)` & `48 (Clean)` shortcuts) and warns below `32/60`.
+            - **Direct FiiO Hand-Picked Cloud on GitHub Pages:** Zero-backend browser RSA+AES-256-ECB client fetches `814+` JA11 presets directly from FiiO servers.
+
+            ### 📱 Android Pure Native App (`JA11-Studio-v3.2.apk`)
+            - **100% Pure Native Android (Zero WebView):** 120Hz Skia Canvas PEQ graph, 2-finger pinch Q-factor, 48kHz Float32 `AudioTrack` sine sweep, and USB-C OTG HID auto-framing (`Report ID = 2`).
+            - Download **`JA11-Studio-v3.2.apk`** under **Assets** below and install directly.
+
+            ### 💻 Web Studio (Desktop Chrome / Edge / Opera)
+            - Launch live at [https://hoanfnho7.github.io/ja11-studio/](https://hoanfnho7.github.io/ja11-studio/) — plug in your JA11 and click **Connect**.
           files: |
-            release/JA11-Studio-v3.1.apk
+            release/JA11-Studio-v3.2.apk
           draft: false
           prerelease: false

@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Play, Square, Waves } from 'lucide-react';
+import { Lang, tr } from '../core/i18n';
 
 interface Props {
+  lang: Lang;
   onActiveFreqChange: (hz: number | null) => void;
 }
 
-export const SineSweepPanel: React.FC<Props> = ({ onActiveFreqChange }) => {
+export const SineSweepPanel: React.FC<Props> = ({ lang, onActiveFreqChange }) => {
   const [freq, setFreq] = useState(4380);
   const [playing, setPlaying] = useState(false);
   const [sweeping, setSweeping] = useState(false);
@@ -160,7 +162,9 @@ export const SineSweepPanel: React.FC<Props> = ({ onActiveFreqChange }) => {
             }`}
           >
             {playing ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            {playing ? 'Dừng sóng Sin' : 'Phát sóng Sin dò tai'}
+            {playing
+              ? tr(lang, 'Dừng sóng Sin', 'Stop Sine')
+              : tr(lang, 'Phát sóng Sin dò tai', 'Play Sine Sweep')}
           </button>
 
           <button
@@ -172,7 +176,9 @@ export const SineSweepPanel: React.FC<Props> = ({ onActiveFreqChange }) => {
             }`}
           >
             <Waves className="w-3.5 h-3.5" />
-            {sweeping ? 'Đang quét 2k→10k...' : 'Tự quét 2k→10k'}
+            {sweeping
+              ? tr(lang, 'Đang quét 2k→10k...', 'Sweeping 2k→10k...')
+              : tr(lang, 'Tự quét 2k→10k', 'Auto Sweep 2k→10k')}
           </button>
 
           <span className="font-mono font-bold text-sm text-rose-400 ml-1">{freq} Hz</span>
@@ -188,13 +194,13 @@ export const SineSweepPanel: React.FC<Props> = ({ onActiveFreqChange }) => {
                   pan === p ? 'bg-cyan-500 text-slate-950 font-semibold' : 'bg-slate-800 text-slate-400'
                 }`}
               >
-                {p === -1 ? 'Trái' : p === 0 ? 'L+R' : 'Phải'}
+                {p === -1 ? tr(lang, 'Trái', 'Left') : p === 0 ? 'L+R' : tr(lang, 'Phải', 'Right')}
               </button>
             ))}
           </div>
 
           <label className="flex items-center gap-1.5 text-slate-400">
-            <span>Âm thử</span>
+            <span>{tr(lang, 'Âm thử', 'Level')}</span>
             <input
               type="range"
               min={1}
@@ -225,7 +231,7 @@ export const SineSweepPanel: React.FC<Props> = ({ onActiveFreqChange }) => {
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-        <span className="text-slate-400">Nhảy nhanh mốc JD1:</span>
+        <span className="text-slate-400">{tr(lang, 'Mốc nhanh:', 'Quick Refs:')}</span>
         {[55, 185, 680, 3200, 4380, 7500].map((hz) => (
           <button
             key={hz}
@@ -239,7 +245,7 @@ export const SineSweepPanel: React.FC<Props> = ({ onActiveFreqChange }) => {
                 : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
             }`}
           >
-            {hz === 4380 ? '4380Hz (Đỉnh tai bạn)' : `${hz}Hz`}
+            {hz === 4380 ? tr(lang, '4380Hz (Đỉnh tai)', '4380Hz (Ear Peak)') : `${hz}Hz`}
           </button>
         ))}
       </div>

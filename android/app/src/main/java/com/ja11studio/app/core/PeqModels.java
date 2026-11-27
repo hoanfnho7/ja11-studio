@@ -173,7 +173,7 @@ public final class PeqModels {
     public static final class HardwareState {
         public boolean connected = false;
         public boolean syncing = false;
-        public String productName = "Chưa kết nối JA11";
+        public String productName = I18n.tr("Chưa kết nối JA11", "JA11 Disconnected");
         public String firmwareVersion = "--";
         public String sampleRate = "--";
         public String activeHidInfo = "--";
@@ -181,7 +181,10 @@ public final class PeqModels {
         public boolean inlineMic = true;
         public int eqPreset = 3;      // 0=Vocal, 1=Classic, 2=Bass, 3=User 1, 4=Off
         public int uacMode = 1;       // 0=UAC 1.0, 1=UAC 2.0
-        public String statusMessage = "Sẵn sàng — Cắm JA11 vào cổng USB-C hoặc chỉnh Offline.";
+        public String statusMessage = I18n.tr(
+                "Sẵn sàng — Cắm JA11 vào cổng USB-C để kết nối.",
+                "Ready — Plug your JA11 into USB-C to connect."
+        );
 
         public HardwareState copy() {
             HardwareState c = new HardwareState();

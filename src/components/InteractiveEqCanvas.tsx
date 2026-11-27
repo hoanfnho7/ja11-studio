@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { computeBiquadCoeffs, evaluateBiquadDb } from '../core/biquadMath';
+import { Lang, tr } from '../core/i18n';
 import { PeqBand, PeqSnapshot } from '../core/ja11Protocol';
 
 const MIN_FREQ = 20;
@@ -18,6 +19,7 @@ export const BAND_COLORS = [
 ] as const;
 
 interface Props {
+  lang?: Lang;
   livePeq: PeqSnapshot;
   savedSnapshot: PeqSnapshot | null;
   selectedBand: number;
@@ -55,6 +57,7 @@ function yToDb(y: number, height: number, padT: number, padB: number): number {
 }
 
 export const InteractiveEqCanvas: React.FC<Props> = ({
+  lang = 'en',
   livePeq,
   savedSnapshot,
   selectedBand,
@@ -360,9 +363,21 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
       />
       {!compactDocked && (
         <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 px-1 text-[11px] text-slate-400">
-          <span>Mẹo: Kéo nút 1–5 để chỉnh Tần số &amp; Gain • Trỏ chuột vào nút 1–5 rồi lăn chuột để đổi độ rộng Q</span>
+          <span>
+            {tr(
+              lang,
+              'Mẹo: Kéo nút 1–5 để chỉnh Tần số & Gain • Trỏ chuột vào nút 1–5 rồi lăn chuột để đổi độ rộng Q',
+              'Tip: Drag nodes 1–5 for Freq & Gain • Hover a node and scroll wheel to adjust Q factor',
+            )}
+          </span>
           {savedSnapshot && (
-            <span className="text-slate-400">--- Đường nét đứt: Profile gốc đang lưu trong chip</span>
+            <span className="text-slate-400">
+              {tr(
+                lang,
+                '--- Đường nét đứt: Profile gốc đang lưu trong chip',
+                '--- Dashed line: Original profile stored in Flash',
+              )}
+            </span>
           )}
         </div>
       )}

@@ -26,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ja11studio.app.core.FiioXmlCodec;
+import com.ja11studio.app.core.I18n;
 import com.ja11studio.app.core.PeqModels.FilterType;
 import com.ja11studio.app.core.PeqModels.HardwareState;
 import com.ja11studio.app.core.PeqModels.PeqBand;
@@ -47,20 +48,32 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
- * Pure Native Android MainActivity for JA11 Studio v3.0 (Zero WebView!).
+ * Pure Native Android MainActivity for JA11 Studio v3.2 (Zero WebView! Full EN / VI Bilingual!).
  * Delivers <100ms startup, 120Hz native Canvas/scroll physics, physical camera-cutout/Dynamic Island inset padding,
- * native SAF XML file picker, and non-blocking USB-C OTG HID control.
+ * instant EN/VI live language switching without dropping USB-C OTG, native SAF XML file picker, and non-blocking HID control.
  */
 public class MainActivity extends Activity implements Ja11UsbController.Listener {
     private static final int REQ_IMPORT_PRESET_FILE = 1001;
 
-    private static final String[] TAB_TITLES = {
-            "EQ & Âm lượng", "Dò đỉnh tai", "Kho Profile", "Phần cứng"
-    };
-    private static final String[] TAB_SUBTITLES = {
-            "Eq & Volume", "Ear Peak Sweep", "Profiles & Xml", "Hardware & Chip"
-    };
     private static final String[] TAB_ICONS = {"🎚", "〰", "📁", "⚙"};
+
+    private static String tabTitle(int idx) {
+        switch (idx) {
+            case 0: return I18n.tr("EQ & Âm lượng", "EQ & Volume");
+            case 1: return I18n.tr("Dò đỉnh tai", "Ear Sweep");
+            case 2: return I18n.tr("Kho Profile", "Profiles");
+            default: return I18n.tr("Phần cứng", "Hardware");
+        }
+    }
+
+    private static String tabSubtitle(int idx) {
+        switch (idx) {
+            case 0: return I18n.tr("EQ & Âm lượng DAC", "Eq & DAC Volume");
+            case 1: return I18n.tr("Dò Đỉnh Ống Tai", "Ear Peak Sweep");
+            case 2: return I18n.tr("Kho Profile & XML", "Profiles & XML");
+            default: return I18n.tr("Phần cứng & Chip", "Hardware & Chip");
+        }
+    }
 
     private Ja11UsbController usbController;
     private PresetRepository presetRepository;
@@ -70,6 +83,7 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
 
     // TopBar views
     private TextView topSubtitleTv;
+    private TextView langToggleBtn;
     private TextView connectBtn;
     private TextView disconnectBtn;
     private TextView abBypassBtn;
@@ -90,6 +104,7 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        I18n.init(this);
 
         Window window = getWindow();
         if (window != null) {
@@ -106,6 +121,22 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
         presetRepository = new PresetRepository(this);
         sineEngine = new SineGeneratorEngine();
 
+        rebuildUiShell();
+
+        usbController.addListener(this);
+
+        // Auto-connect if launched via USB OTG plug or if JA11 is already plugged into USB-C!
+        handleUsbIntent(getIntent());
+        if (usbController.findJa11Device() != null) {
+            usbController.connectAsync(true);
+        }
+    }
+
+    /**
+     * Builds (or cleanly rebuilds on EN <-> VI language toggle) the entire native view tree
+     * while keeping Ja11UsbController, PresetRepository, SineGeneratorEngine, and activeTab alive!
+     */
+    private void rebuildUiShell() {
         LinearLayout rootShell = new LinearLayout(this);
         rootShell.setOrientation(LinearLayout.VERTICAL);
         rootShell.setBackgroundColor(UiKit.C_SURFACE);
@@ -136,7 +167,10 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
                 usbController.updateBandLive(3, b4);
                 selectTab(0);
                 tabEqView.selectBandAndFocus(3);
-                showToast("Đã gán " + hz + " Hz vào Band 4 (-3.8 dB, Q 3.20)!");
+                showToast(I18n.tr(
+                        "Đã gán " + hz + " Hz vào Band 4 (-3.8 dB, Q 3.20)!",
+                        "Assigned " + hz + " Hz to Band 4 (-3.8 dB, Q 3.20)!"
+                ));
             }
         });
 
@@ -198,15 +232,7 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
 
         setContentView(rootShell);
         rootShell.requestApplyInsets();
-
-        usbController.addListener(this);
-        selectTab(0);
-
-        // Auto-connect if launched via USB OTG plug or if JA11 is already plugged into USB-C!
-        handleUsbIntent(getIntent());
-        if (usbController.findJa11Device() != null) {
-            usbController.connectAsync(true);
-        }
+        selectTab(activeTab);
     }
 
     private View buildTopAppBar() {
@@ -217,46 +243,71 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
         LinearLayout bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setGravity(Gravity.CENTER_VERTICAL);
-        int ph = UiKit.dp(this, 12f);
+        int ph = UiKit.dp(this, 10f);
         int pv = UiKit.dp(this, 8f);
         bar.setPadding(ph, pv, ph, pv);
 
         // Brand emblem + title
         TextView logoBadge = UiKit.badge(this, "∿", UiKit.C_SURFACE_LOW, UiKit.C_AMBER_CONTAINER);
-        logoBadge.setTextSize(16f);
-        logoBadge.setPadding(UiKit.dp(this, 8f), UiKit.dp(this, 4f), UiKit.dp(this, 8f), UiKit.dp(this, 4f));
+        logoBadge.setTextSize(15f);
+        logoBadge.setPadding(UiKit.dp(this, 7f), UiKit.dp(this, 4f), UiKit.dp(this, 7f), UiKit.dp(this, 4f));
 
         LinearLayout titleCol = new LinearLayout(this);
         titleCol.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams tcLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        tcLp.leftMargin = UiKit.dp(this, 9f);
+        tcLp.leftMargin = UiKit.dp(this, 8f);
         titleCol.setLayoutParams(tcLp);
 
         LinearLayout brandRow = new LinearLayout(this);
         brandRow.setOrientation(LinearLayout.HORIZONTAL);
         brandRow.setGravity(Gravity.CENTER_VERTICAL);
-        TextView brandTv = UiKit.label(this, "FiiO JA11", 16f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
-        TextView dspTag = UiKit.badge(this, "DSP v3.1", UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT);
+        TextView brandTv = UiKit.label(this, "FiiO JA11", 15.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
+        TextView dspTag = UiKit.badge(this, "v3.2", UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT);
         LinearLayout.LayoutParams dtLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        dtLp.leftMargin = UiKit.dp(this, 6f);
+        dtLp.leftMargin = UiKit.dp(this, 5f);
         dspTag.setLayoutParams(dtLp);
         brandRow.addView(brandTv);
         brandRow.addView(dspTag);
 
-        topSubtitleTv = UiKit.label(this, TAB_SUBTITLES[0], 10f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
+        topSubtitleTv = UiKit.label(this, tabSubtitle(activeTab), 9.5f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
+        topSubtitleTv.setSingleLine(true);
         titleCol.addView(brandRow);
         titleCol.addView(topSubtitleTv);
 
+        // EN / VI Instant Language Toggle Pill
+        langToggleBtn = UiKit.actionButton(this, I18n.code(), UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT, UiKit.C_BORDER, 8f, 10.5f);
+        langToggleBtn.setMinHeight(UiKit.dp(this, 34f));
+        langToggleBtn.setPadding(UiKit.dp(this, 8f), UiKit.dp(this, 4f), UiKit.dp(this, 8f), UiKit.dp(this, 4f));
+        LinearLayout.LayoutParams lgLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lgLp.rightMargin = UiKit.dp(this, 5f);
+        langToggleBtn.setLayoutParams(lgLp);
+        langToggleBtn.setOnClickListener(v -> {
+            UiKit.hapticTap(v);
+            I18n.toggle(this);
+            rebuildUiShell();
+            showToast(I18n.tr("Đã chuyển sang Tiếng Việt", "Switched to English"));
+        });
+
         // Right buttons: Connect/Disconnect + A/B Bypass
-        connectBtn = UiKit.actionButton(this, "● Kết nối", UiKit.C_SURFACE_LOW, UiKit.C_AMBER_TEXT, UiKit.C_BORDER, 8f, 11f);
-        connectBtn.setMinHeight(UiKit.dp(this, 36f));
+        connectBtn = UiKit.actionButton(
+                this,
+                I18n.tr("● Kết nối", "● Connect"),
+                UiKit.C_SURFACE_LOW,
+                UiKit.C_AMBER_TEXT,
+                UiKit.C_BORDER,
+                8f,
+                10.5f
+        );
+        connectBtn.setMinHeight(UiKit.dp(this, 34f));
+        connectBtn.setPadding(UiKit.dp(this, 9f), UiKit.dp(this, 4f), UiKit.dp(this, 9f), UiKit.dp(this, 4f));
         connectBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
             usbController.connectAsync(false);
         });
 
-        disconnectBtn = UiKit.actionButton(this, "✕", UiKit.C_SURFACE_LOW, UiKit.C_TEXT_MUTED, UiKit.C_BORDER, 8f, 11f);
-        disconnectBtn.setMinHeight(UiKit.dp(this, 36f));
+        disconnectBtn = UiKit.actionButton(this, "✕", UiKit.C_SURFACE_LOW, UiKit.C_TEXT_MUTED, UiKit.C_BORDER, 8f, 10.5f);
+        disconnectBtn.setMinHeight(UiKit.dp(this, 34f));
+        disconnectBtn.setPadding(UiKit.dp(this, 8f), UiKit.dp(this, 4f), UiKit.dp(this, 8f), UiKit.dp(this, 4f));
         disconnectBtn.setVisibility(View.GONE);
         LinearLayout.LayoutParams dcLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dcLp.leftMargin = UiKit.dp(this, 4f);
@@ -266,10 +317,19 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
             usbController.disconnectAsync();
         });
 
-        abBypassBtn = UiKit.actionButton(this, "⇄ EQ BẬT", UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 8f, 11f);
-        abBypassBtn.setMinHeight(UiKit.dp(this, 36f));
+        abBypassBtn = UiKit.actionButton(
+                this,
+                I18n.tr("⇄ EQ BẬT", "⇄ EQ ON"),
+                UiKit.C_AMBER_CONTAINER,
+                UiKit.C_ON_AMBER,
+                Color.TRANSPARENT,
+                8f,
+                10.5f
+        );
+        abBypassBtn.setMinHeight(UiKit.dp(this, 34f));
+        abBypassBtn.setPadding(UiKit.dp(this, 9f), UiKit.dp(this, 4f), UiKit.dp(this, 9f), UiKit.dp(this, 4f));
         LinearLayout.LayoutParams abLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        abLp.leftMargin = UiKit.dp(this, 6f);
+        abLp.leftMargin = UiKit.dp(this, 5f);
         abBypassBtn.setLayoutParams(abLp);
         abBypassBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
@@ -278,6 +338,7 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
 
         bar.addView(logoBadge);
         bar.addView(titleCol);
+        bar.addView(langToggleBtn);
         bar.addView(connectBtn);
         bar.addView(disconnectBtn);
         bar.addView(abBypassBtn);
@@ -321,7 +382,7 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
 
             TextView ic = UiKit.label(this, TAB_ICONS[i], 14f, UiKit.C_TEXT_MUTED, UiKit.FONT_SANS_BOLD);
             ic.setGravity(Gravity.CENTER);
-            TextView lb = UiKit.label(this, TAB_TITLES[i], 10f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO_BOLD);
+            TextView lb = UiKit.label(this, tabTitle(i), 10f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO_BOLD);
             lb.setGravity(Gravity.CENTER);
             lb.setSingleLine(true);
 
@@ -356,13 +417,22 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         ((LinearLayout.LayoutParams) iconTv.getLayoutParams()).bottomMargin = UiKit.dp(this, 12f);
 
-        TextView title = UiKit.label(this, "Kết nối FiiO / JadeAudio JA11", 19f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
+        TextView title = UiKit.label(
+                this,
+                I18n.tr("Kết nối FiiO / JadeAudio JA11", "Connect FiiO / JadeAudio JA11"),
+                19f,
+                UiKit.C_TEXT_PRIMARY,
+                UiKit.FONT_SANS_BOLD
+        );
         title.setGravity(Gravity.CENTER);
         card.addView(title, UiKit.matchWrapBottomMargin(this, 8f));
 
         TextView desc = UiKit.label(
                 this,
-                "Cắm DAC FiiO JA11 vào cổng USB-C điện thoại rồi bấm nút bên dưới để đọc thông số trực tiếp từ chip và mở khóa bảng điều khiển Studio.",
+                I18n.tr(
+                        "Cắm DAC FiiO JA11 vào cổng USB-C điện thoại rồi bấm nút bên dưới để đọc thông số trực tiếp từ chip và mở khóa bảng điều khiển Studio.",
+                        "Plug your FiiO JA11 DAC into the phone's USB-C port and tap below to read live DSP telemetry and unlock the Studio console."
+                ),
                 13f,
                 UiKit.C_TEXT_MUTED,
                 UiKit.FONT_SANS
@@ -372,7 +442,7 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
 
         TextView bigConnectBtn = UiKit.actionButton(
                 this,
-                "🔌 KẾT NỐI FIIO JA11 (USB-C OTG)",
+                I18n.tr("🔌 KẾT NỐI FIIO JA11 (USB-C OTG)", "🔌 CONNECT FIIO JA11 (USB-C OTG)"),
                 UiKit.C_AMBER_CONTAINER,
                 UiKit.C_ON_AMBER,
                 Color.TRANSPARENT,
@@ -388,9 +458,14 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
 
         TextView hintBox = UiKit.label(
                 this,
-                "• Bước 1: Cắm JA11 + tai nghe vào cổng USB-C\n"
-                        + "• Bước 2: Bật OTG trong Cài đặt (nếu dùng Oppo/Vivo/Realme) và đóng app FiiO Control chạy nền\n"
-                        + "• Bước 3: Bấm Cho phép trên bảng hỏi USB Android",
+                I18n.tr(
+                        "• Bước 1: Cắm JA11 + tai nghe vào cổng USB-C\n"
+                                + "• Bước 2: Bật OTG trong Cài đặt (nếu dùng Oppo/Vivo/Realme) và đóng app FiiO Control chạy nền\n"
+                                + "• Bước 3: Bấm Cho phép trên bảng hỏi USB Android",
+                        "• Step 1: Plug JA11 + earphones into USB-C port\n"
+                                + "• Step 2: Enable OTG in Settings (Oppo/Vivo/Realme) and close FiiO Control in background\n"
+                                + "• Step 3: Tap Allow on the Android USB permission dialog"
+                ),
                 11f,
                 UiKit.C_TEXT_MUTED,
                 UiKit.FONT_MONO
@@ -400,11 +475,25 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
         hintBox.setBackground(UiKit.roundedBox(this, UiKit.C_SURFACE_LOWEST, 9f, UiKit.C_BORDER, 0.8f));
         card.addView(hintBox, UiKit.matchWrapBottomMargin(this, 10f));
 
-        gateStatusTv = UiKit.label(this, "Chưa phát hiện DAC USB-C", 10.5f, UiKit.C_CYAN_TEXT, UiKit.FONT_MONO);
+        gateStatusTv = UiKit.label(
+                this,
+                I18n.tr("Chưa phát hiện DAC USB-C", "No USB-C DAC detected yet"),
+                10.5f,
+                UiKit.C_CYAN_TEXT,
+                UiKit.FONT_MONO
+        );
         gateStatusTv.setGravity(Gravity.CENTER);
         card.addView(gateStatusTv, UiKit.matchWrapBottomMargin(this, 8f));
 
-        TextView logBtn = UiKit.actionButton(this, "📋 Xem Nhật ký USB (Hex)", UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_MUTED, Color.TRANSPARENT, 8f, 10f);
+        TextView logBtn = UiKit.actionButton(
+                this,
+                I18n.tr("📋 Xem Nhật ký USB (Hex)", "📋 View USB Hex Log"),
+                UiKit.C_SURFACE_HIGH,
+                UiKit.C_TEXT_MUTED,
+                Color.TRANSPARENT,
+                8f,
+                10f
+        );
         logBtn.setMinHeight(UiKit.dp(this, 34f));
         logBtn.setOnClickListener(v -> {
             android.widget.ScrollView sv = new android.widget.ScrollView(this);
@@ -414,9 +503,9 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
             tv.setTextIsSelectable(true);
             sv.addView(tv);
             new android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                    .setTitle("Nhật ký Gói tin USB-C HID")
+                    .setTitle(I18n.tr("Nhật ký Gói tin USB-C HID", "USB-C HID Packet Log"))
                     .setView(sv)
-                    .setPositiveButton("Đóng", null)
+                    .setPositiveButton(I18n.tr("Đóng", "Close"), null)
                     .show();
         });
         card.addView(logBtn);
@@ -431,7 +520,7 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
     private void selectTab(int idx) {
         activeTab = Math.max(0, Math.min(3, idx));
         HardwareState hw = usbController.getHardwareState();
-        topSubtitleTv.setText(hw.connected ? TAB_SUBTITLES[activeTab] : "Chờ kết nối USB-C DAC");
+        topSubtitleTv.setText(hw.connected ? tabSubtitle(activeTab) : I18n.tr("Chờ kết nối USB-C DAC", "Waiting for USB-C DAC"));
         for (int i = 0; i < 4; i++) {
             boolean act = hw.connected && (i == activeTab);
             tabViews[i].setVisibility(act ? View.VISIBLE : View.GONE);
@@ -454,31 +543,31 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
         boolean eqOn = (hw.eqPreset != 4);
 
         if (hw.connected) {
-            connectBtn.setText("● Đã kết nối");
+            connectBtn.setText(I18n.tr("● Đã nối", "● Linked"));
             connectBtn.setTextColor(UiKit.C_CYAN_TEXT);
             disconnectBtn.setVisibility(View.VISIBLE);
             abBypassBtn.setVisibility(View.VISIBLE);
             connectGateView.setVisibility(View.GONE);
             bottomNavBarView.setVisibility(View.VISIBLE);
-            topSubtitleTv.setText(TAB_SUBTITLES[activeTab]);
+            topSubtitleTv.setText(tabSubtitle(activeTab));
             for (int i = 0; i < 4; i++) {
                 tabViews[i].setVisibility(i == activeTab ? View.VISIBLE : View.GONE);
             }
         } else {
-            connectBtn.setText(hw.syncing ? "⏳ Đang nối..." : "● Kết nối");
+            connectBtn.setText(hw.syncing ? I18n.tr("⏳ Đang nối...", "⏳ Linking...") : I18n.tr("● Kết nối", "● Connect"));
             connectBtn.setTextColor(UiKit.C_AMBER_TEXT);
             disconnectBtn.setVisibility(View.GONE);
             abBypassBtn.setVisibility(View.GONE);
             connectGateView.setVisibility(View.VISIBLE);
             bottomNavBarView.setVisibility(View.GONE);
-            topSubtitleTv.setText("Chờ kết nối USB-C DAC");
+            topSubtitleTv.setText(I18n.tr("Chờ kết nối USB-C DAC", "Waiting for USB-C DAC"));
             gateStatusTv.setText(hw.statusMessage);
             for (int i = 0; i < 4; i++) {
                 tabViews[i].setVisibility(View.GONE);
             }
         }
 
-        abBypassBtn.setText(eqOn ? "⇄ EQ BẬT" : "⇄ EQ TẮT");
+        abBypassBtn.setText(eqOn ? I18n.tr("⇄ EQ BẬT", "⇄ EQ ON") : I18n.tr("⇄ EQ TẮT", "⇄ EQ OFF"));
         abBypassBtn.setBackground(UiKit.rippleBox(
                 this,
                 eqOn ? UiKit.C_AMBER_CONTAINER : UiKit.C_SURFACE_HIGH,
@@ -585,7 +674,7 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
             intent.setType("*/*");
             startActivityForResult(intent, REQ_IMPORT_PRESET_FILE);
         } catch (Exception e) {
-            showToast("Không mở được trình chọn file: " + e.getMessage());
+            showToast(I18n.tr("Không mở được trình chọn file: ", "Failed to open file picker: ") + e.getMessage());
         }
     }
 
@@ -602,9 +691,12 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
                 tabEqView.setQuickProfiles(nextVault);
                 tabProfilesView.reloadVaultFromDisk();
                 usbController.applyProfileLive(parsed.snapshot, parsed.name);
-                showToast("Đã nạp \"" + parsed.name + "\" vào RAM & lưu Kho Offline!");
+                showToast(I18n.tr(
+                        "Đã nạp \"" + parsed.name + "\" vào RAM & lưu Kho Offline!",
+                        "Loaded \"" + parsed.name + "\" to RAM & saved to Offline Vault!"
+                ));
             } catch (Exception e) {
-                showToast("Lỗi đọc file Preset: " + e.getMessage());
+                showToast(I18n.tr("Lỗi đọc file Preset: ", "Preset read error: ") + e.getMessage());
             }
         }
     }
@@ -623,7 +715,7 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
     private String readUriText(Uri uri) throws Exception {
         try (InputStream is = getContentResolver().openInputStream(uri);
              ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            if (is == null) throw new IllegalStateException("Không mở được luồng đọc tệp.");
+            if (is == null) throw new IllegalStateException(I18n.tr("Không mở được luồng đọc tệp.", "Cannot open file stream."));
             byte[] buf = new byte[4096];
             int r;
             while ((r = is.read(buf)) != -1) baos.write(buf, 0, r);
@@ -645,13 +737,13 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
                             os.write(xmlContent.getBytes(StandardCharsets.UTF_8));
                         }
                     }
-                    showToast("Đã lưu tại Download/JA11Studio/" + filename);
+                    showToast(I18n.tr("Đã lưu tại Download/JA11Studio/", "Saved to Download/JA11Studio/") + filename);
                     return;
                 }
             }
-            showToast("Không thể ghi tệp vào thư mục Download.");
+            showToast(I18n.tr("Không thể ghi tệp vào thư mục Download.", "Could not write file to Downloads."));
         } catch (Exception e) {
-            showToast("Lỗi xuất file XML: " + e.getMessage());
+            showToast(I18n.tr("Lỗi xuất file XML: ", "XML export error: ") + e.getMessage());
         }
     }
 

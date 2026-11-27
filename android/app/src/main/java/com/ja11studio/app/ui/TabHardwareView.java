@@ -11,13 +11,14 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.ja11studio.app.core.I18n;
 import com.ja11studio.app.core.Ja11Protocol;
 import com.ja11studio.app.core.PeqModels.HardwareState;
 import com.ja11studio.app.core.PeqModels.PeqSnapshot;
 import com.ja11studio.app.usb.Ja11UsbController;
 
 /**
- * Tab 4 (Native): Phần cứng & Chip DAC — Sticky Curve Monitor, Chip Telemetry, 5 NVRAM Modes, Mic/UAC, USB Hex Log.
+ * Tab 4 (Native): Hardware & DAC Chip — Sticky Curve Monitor, Chip Telemetry, 5 NVRAM Modes, Mic/UAC, USB Hex Log.
  */
 public final class TabHardwareView extends LinearLayout {
     public interface HostActions {
@@ -26,14 +27,26 @@ public final class TabHardwareView extends LinearLayout {
 
     private static final int[] MODE_CODES = {3, 0, 2, 1, 4};
     private static final String[] MODE_BADGES = {"U1", "VC", "BS", "CL", "BY"};
-    private static final String[] MODE_TITLES = {"User 1", "Vocal", "Bass Boost", "Classic", "Tắt EQ (Hardware Bypass)"};
-    private static final String[] MODE_DESCS = {
-            "Bộ nhớ PEQ 5-Band tùy chỉnh riêng",
-            "Tôn giọng hát ca sĩ rõ nét",
-            "Tăng lực dải trầm sôi động",
-            "Cân bằng nhạc cụ cổ điển",
-            "Xuất âm mộc phẳng 0 dB"
-    };
+
+    private static String modeTitle(int idx) {
+        switch (idx) {
+            case 0: return "User 1";
+            case 1: return "Vocal";
+            case 2: return "Bass Boost";
+            case 3: return "Classic";
+            default: return I18n.tr("Tắt EQ (Hardware Bypass)", "EQ Off (Hardware Bypass)");
+        }
+    }
+
+    private static String modeDesc(int idx) {
+        switch (idx) {
+            case 0: return I18n.tr("Bộ nhớ PEQ 5-Band tùy chỉnh riêng", "Custom 5-band PEQ memory slot");
+            case 1: return I18n.tr("Tôn giọng hát ca sĩ rõ nét", "Forward and clear vocal tuning");
+            case 2: return I18n.tr("Tăng lực dải trầm sôi động", "Punchy low-end bass boost");
+            case 3: return I18n.tr("Cân bằng nhạc cụ cổ điển", "Balanced acoustic & classical curve");
+            default: return I18n.tr("Xuất âm mộc phẳng 0 dB", "Bit-transparent flat 0 dB bypass");
+        }
+    }
 
     private final Ja11UsbController controller;
     private final HostActions hostActions;
@@ -85,16 +98,16 @@ public final class TabHardwareView extends LinearLayout {
         pHdr.setOrientation(HORIZONTAL);
         pHdr.setGravity(Gravity.CENTER_VERTICAL);
 
-        stickyModeTv = UiKit.label(ctx, "● Đáp tuyến Chip: User 1", 11f, UiKit.C_CYAN_TEXT, UiKit.FONT_MONO_BOLD);
+        stickyModeTv = UiKit.label(ctx, I18n.tr("● Đáp tuyến Chip: User 1", "● Chip Curve: User 1"), 11f, UiKit.C_CYAN_TEXT, UiKit.FONT_MONO_BOLD);
         stickyModeTv.setLayoutParams(new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-        toggleGraphBtn = UiKit.actionButton(ctx, "Thu gọn", UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_MUTED, Color.TRANSPARENT, 6f, 9.5f);
+        toggleGraphBtn = UiKit.actionButton(ctx, I18n.tr("Thu gọn", "Hide"), UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_MUTED, Color.TRANSPARENT, 6f, 9.5f);
         toggleGraphBtn.setMinHeight(UiKit.dp(ctx, 26f));
         toggleGraphBtn.setPadding(UiKit.dp(ctx, 8f), UiKit.dp(ctx, 2f), UiKit.dp(ctx, 8f), UiKit.dp(ctx, 2f));
         toggleGraphBtn.setOnClickListener(v -> {
             showMiniGraph = !showMiniGraph;
             miniGraph.setVisibility(showMiniGraph ? VISIBLE : GONE);
-            toggleGraphBtn.setText(showMiniGraph ? "Thu gọn" : "Hiện đồ thị");
+            toggleGraphBtn.setText(showMiniGraph ? I18n.tr("Thu gọn", "Hide") : I18n.tr("Hiện đồ thị", "Show Graph"));
         });
 
         pHdr.addView(stickyModeTv);
@@ -122,9 +135,9 @@ public final class TabHardwareView extends LinearLayout {
         LinearLayout cTop = new LinearLayout(ctx);
         cTop.setOrientation(HORIZONTAL);
         cTop.setGravity(Gravity.CENTER_VERTICAL);
-        connStatusTv = UiKit.label(ctx, "● CHƯA KẾT NỐI USB-C JA11", 10.5f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO_BOLD);
+        connStatusTv = UiKit.label(ctx, I18n.tr("● CHƯA KẾT NỐI USB-C JA11", "● USB-C JA11 DISCONNECTED"), 10.5f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO_BOLD);
         connStatusTv.setLayoutParams(new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        TextView logBtn = UiKit.actionButton(ctx, "📋 Nhật ký USB (Hex)", UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT, Color.TRANSPARENT, 7f, 9.5f);
+        TextView logBtn = UiKit.actionButton(ctx, I18n.tr("📋 Nhật ký USB (Hex)", "📋 USB Hex Log"), UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT, Color.TRANSPARENT, 7f, 9.5f);
         logBtn.setMinHeight(UiKit.dp(ctx, 28f));
         logBtn.setPadding(UiKit.dp(ctx, 8f), UiKit.dp(ctx, 3f), UiKit.dp(ctx, 8f), UiKit.dp(ctx, 3f));
         logBtn.setOnClickListener(v -> showUsbHexLogDialog(ctx));
@@ -133,24 +146,24 @@ public final class TabHardwareView extends LinearLayout {
         chipCard.addView(cTop, UiKit.matchWrapBottomMargin(ctx, 6f));
 
         TextView dspTitle = UiKit.label(ctx, "FiiO Custom DSP (KT02H20)", 18f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
-        prodSubtitleTv = UiKit.label(ctx, "Bộ giải mã tích hợp DAC & PEQ rời 5-Band", 12f, UiKit.C_TEXT_MUTED, UiKit.FONT_SANS);
+        prodSubtitleTv = UiKit.label(ctx, I18n.tr("Bộ giải mã tích hợp DAC & PEQ rời 5-Band", "Integrated USB-C DAC & 5-Band Hardware PEQ"), 12f, UiKit.C_TEXT_MUTED, UiKit.FONT_SANS);
         chipCard.addView(dspTitle);
         chipCard.addView(prodSubtitleTv, UiKit.matchWrapBottomMargin(ctx, 8f));
 
         // 2x2 Telemetry Grid
         LinearLayout gridRow1 = new LinearLayout(ctx);
         gridRow1.setOrientation(HORIZONTAL);
-        fwValTv = addTelemetryTile(ctx, gridRow1, "VI MÃ (FIRMWARE)", "KT02H20", true);
-        nvramValTv = addTelemetryTile(ctx, gridRow1, "TRẠNG THÁI BỘ NHỚ", "Đồng bộ", false);
+        fwValTv = addTelemetryTile(ctx, gridRow1, I18n.tr("VI MÃ (FIRMWARE)", "FIRMWARE"), "KT02H20", true);
+        nvramValTv = addTelemetryTile(ctx, gridRow1, I18n.tr("TRẠNG THÁI BỘ NHỚ", "MEMORY STATE"), I18n.tr("Đồng bộ", "Synced"), false);
         chipCard.addView(gridRow1, UiKit.matchWrapBottomMargin(ctx, 6f));
 
         LinearLayout gridRow2 = new LinearLayout(ctx);
         gridRow2.setOrientation(HORIZONTAL);
-        srValTv = addTelemetryTile(ctx, gridRow2, "BĂNG THÔNG TỐI ĐA", "384kHz / 32b", true);
-        uacValTv = addTelemetryTile(ctx, gridRow2, "GIAO THỨC ÂM THANH", "UAC 2.0", false);
+        srValTv = addTelemetryTile(ctx, gridRow2, I18n.tr("BĂNG THÔNG TỐI ĐA", "MAX SAMPLE RATE"), "384kHz / 32b", true);
+        uacValTv = addTelemetryTile(ctx, gridRow2, I18n.tr("GIAO THỨC ÂM THANH", "AUDIO PROTOCOL"), "UAC 2.0", false);
         chipCard.addView(gridRow2, UiKit.matchWrapBottomMargin(ctx, 6f));
 
-        hidPipeTv = UiKit.label(ctx, "Kênh điều khiển HID: --", 10f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
+        hidPipeTv = UiKit.label(ctx, I18n.tr("Kênh điều khiển HID: --", "HID Transport Pipe: --"), 10f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
         chipCard.addView(hidPipeTv);
         body.addView(chipCard, UiKit.matchWrapBottomMargin(ctx, 10f));
 
@@ -159,7 +172,7 @@ public final class TabHardwareView extends LinearLayout {
         LinearLayout nvHdr = new LinearLayout(ctx);
         nvHdr.setOrientation(HORIZONTAL);
         nvHdr.setGravity(Gravity.CENTER_VERTICAL);
-        TextView nvTitle = UiKit.label(ctx, "💾 Bộ nhớ Flash phần cứng", 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
+        TextView nvTitle = UiKit.label(ctx, I18n.tr("💾 Bộ nhớ Flash phần cứng", "💾 Hardware Flash Presets"), 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
         nvTitle.setLayoutParams(new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         nvHdr.addView(nvTitle);
         nvHdr.addView(UiKit.badge(ctx, "NVRAM 0x16", UiKit.C_SURFACE_CONTAINER, UiKit.C_TEXT_MUTED));
@@ -192,8 +205,8 @@ public final class TabHardwareView extends LinearLayout {
             LinearLayout tLine = new LinearLayout(ctx);
             tLine.setOrientation(HORIZONTAL);
             tLine.setGravity(Gravity.CENTER_VERTICAL);
-            TextView mTitle = UiKit.label(ctx, MODE_TITLES[i], 12.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO_BOLD);
-            TextView runTag = UiKit.badge(ctx, "Đang chạy", UiKit.C_AMBER_TEXT, UiKit.C_ON_AMBER);
+            TextView mTitle = UiKit.label(ctx, modeTitle(i), 12.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO_BOLD);
+            TextView runTag = UiKit.badge(ctx, I18n.tr("Đang chạy", "Active"), UiKit.C_AMBER_TEXT, UiKit.C_ON_AMBER);
             LayoutParams rtLp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             rtLp.leftMargin = UiKit.dp(ctx, 6f);
             runTag.setLayoutParams(rtLp);
@@ -202,7 +215,7 @@ public final class TabHardwareView extends LinearLayout {
             tLine.addView(mTitle);
             tLine.addView(runTag);
             col.addView(tLine);
-            col.addView(UiKit.label(ctx, MODE_DESCS[i], 11f, UiKit.C_TEXT_MUTED, UiKit.FONT_SANS));
+            col.addView(UiKit.label(ctx, modeDesc(i), 11f, UiKit.C_TEXT_MUTED, UiKit.FONT_SANS));
 
             row.addView(badge);
             row.addView(col);
@@ -217,7 +230,7 @@ public final class TabHardwareView extends LinearLayout {
 
         LinearLayout fcRow = new LinearLayout(ctx);
         fcRow.setOrientation(HORIZONTAL);
-        revertBtn = UiKit.actionButton(ctx, "↺ Hoàn tác", UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_PRIMARY, Color.TRANSPARENT, 8f, 10.5f);
+        revertBtn = UiKit.actionButton(ctx, I18n.tr("↺ Hoàn tác", "↺ Revert"), UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_PRIMARY, Color.TRANSPARENT, 8f, 10.5f);
         LayoutParams rvLp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         rvLp.rightMargin = UiKit.dp(ctx, 6f);
         revertBtn.setLayoutParams(rvLp);
@@ -226,7 +239,7 @@ public final class TabHardwareView extends LinearLayout {
             controller.revertToSavedSnapshotAsync();
         });
 
-        commitFlashBtn = UiKit.actionButton(ctx, "💾 LƯU CỨNG VÀO FLASH ROM", UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 8f, 11f);
+        commitFlashBtn = UiKit.actionButton(ctx, I18n.tr("💾 LƯU CỨNG VÀO FLASH ROM", "💾 COMMIT TO FLASH ROM"), UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 8f, 11f);
         commitFlashBtn.setLayoutParams(new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         commitFlashBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
@@ -238,7 +251,10 @@ public final class TabHardwareView extends LinearLayout {
         flashCommitBox.addView(fcRow, UiKit.matchWrapBottomMargin(ctx, 4f));
         flashCommitBox.addView(UiKit.label(
                 ctx,
-                "Lưu ý: Lệnh ghi SPI Flash (0x19) làm JA11 chớp khởi động lại USB ~1 giây và app sẽ tự nối lại.",
+                I18n.tr(
+                        "Lưu ý: Lệnh ghi SPI Flash (0x19) làm JA11 chớp khởi động lại USB ~1 giây và app sẽ tự nối lại.",
+                        "Note: Writing SPI Flash (0x19) triggers a brief ~1s USB reboot; the app will auto-reconnect."
+                ),
                 10f,
                 UiKit.C_TEXT_MUTED,
                 UiKit.FONT_MONO
@@ -248,7 +264,7 @@ public final class TabHardwareView extends LinearLayout {
 
         // Card C: I/O Config (Inline Mic & UAC 1.0 / 2.0)
         LinearLayout ioCard = UiKit.cardContainer(ctx, 12f);
-        ioCard.addView(UiKit.label(ctx, "🎛 Giao thức & Đàm thoại (I/O Config)", 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD),
+        ioCard.addView(UiKit.label(ctx, I18n.tr("🎛 Giao thức & Đàm thoại (I/O Config)", "🎛 I/O & Protocol Config"), 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD),
                 UiKit.matchWrapBottomMargin(ctx, 8f));
 
         LinearLayout micBox = new LinearLayout(ctx);
@@ -262,9 +278,9 @@ public final class TabHardwareView extends LinearLayout {
         micCol.setOrientation(VERTICAL);
         micCol.setLayoutParams(new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         micCol.addView(UiKit.label(ctx, "🎙 Inline Mic (3.5mm CTIA)", 12.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO_BOLD));
-        micCol.addView(UiKit.label(ctx, "Tắt nếu dùng IEM thuần nghe nhạc để giảm nhiễu nền", 11f, UiKit.C_TEXT_MUTED, UiKit.FONT_SANS));
+        micCol.addView(UiKit.label(ctx, I18n.tr("Tắt nếu dùng IEM thuần nghe nhạc để giảm nhiễu nền", "Disable for pure music IEMs to reduce noise floor"), 11f, UiKit.C_TEXT_MUTED, UiKit.FONT_SANS));
 
-        micToggleBtn = UiKit.actionButton(ctx, "ĐANG BẬT", UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 16f, 10.5f);
+        micToggleBtn = UiKit.actionButton(ctx, I18n.tr("ĐANG BẬT", "ENABLED"), UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 16f, 10.5f);
         micToggleBtn.setMinHeight(UiKit.dp(ctx, 34f));
         micToggleBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
@@ -280,7 +296,7 @@ public final class TabHardwareView extends LinearLayout {
         uacBox.setOrientation(VERTICAL);
         uacBox.setPadding(p10, p10, p10, p10);
         uacBox.setBackground(UiKit.roundedBox(ctx, UiKit.C_SURFACE_CONTAINER, 9f, Color.TRANSPARENT, 0f));
-        uacBox.addView(UiKit.label(ctx, "🔌 Chuẩn USB Audio (UAC)", 12.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO_BOLD),
+        uacBox.addView(UiKit.label(ctx, I18n.tr("🔌 Chuẩn USB Audio (UAC)", "🔌 USB Audio Class (UAC)"), 12.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO_BOLD),
                 UiKit.matchWrapBottomMargin(ctx, 6f));
 
         LinearLayout uacRow = new LinearLayout(ctx);
@@ -310,7 +326,7 @@ public final class TabHardwareView extends LinearLayout {
         // Factory Reset Button
         TextView resetBtn = UiKit.actionButton(
                 ctx,
-                "↺ Khôi phục vi mã xuất xưởng (Factory Reset)",
+                I18n.tr("↺ Khôi phục vi mã xuất xưởng (Factory Reset)", "↺ Factory Reset Chip PEQ (0 dB)"),
                 UiKit.C_SURFACE_LOW,
                 UiKit.C_ERROR,
                 UiKit.C_BORDER,
@@ -325,7 +341,7 @@ public final class TabHardwareView extends LinearLayout {
 
         TextView footNote = UiKit.label(
                 ctx,
-                "FiiO JA11 USB-C Portable DAC • Pure Native Android Studio v3.0",
+                "FiiO JA11 USB-C Portable DAC • Pure Native Android Studio v3.2",
                 9.5f,
                 UiKit.C_OUTLINE,
                 UiKit.FONT_MONO
@@ -362,22 +378,26 @@ public final class TabHardwareView extends LinearLayout {
                 ? Ja11Protocol.EQ_PRESET_NAMES[hw.eqPreset]
                 : "User 1";
 
-        stickyModeTv.setText("● Đáp tuyến Chip: " + modeName);
+        stickyModeTv.setText(I18n.tr("● Đáp tuyến Chip: ", "● Chip Curve: ") + modeName);
         miniGraph.updateState(live, saved, 3, bypassed, null);
 
-        connStatusTv.setText(hw.connected ? "● DSP ACTIVE • TRỰC TIẾP PHẦN CỨNG" : "● CHƯA KẾT NỐI USB-C JA11");
+        connStatusTv.setText(hw.connected
+                ? I18n.tr("● DSP ACTIVE • TRỰC TIẾP PHẦN CỨNG", "● DSP ACTIVE • DIRECT HARDWARE")
+                : I18n.tr("● CHƯA KẾT NỐI USB-C JA11", "● USB-C JA11 DISCONNECTED"));
         connStatusTv.setTextColor(hw.connected ? UiKit.C_GREEN : UiKit.C_TEXT_MUTED);
         prodSubtitleTv.setText(hw.connected
-                ? (hw.productName + " • Kết nối OTG trực tiếp")
-                : "Bộ giải mã tích hợp DAC & PEQ rời 5-Band");
+                ? (hw.productName + I18n.tr(" • Kết nối OTG trực tiếp", " • Direct USB-C OTG"))
+                : I18n.tr("Bộ giải mã tích hợp DAC & PEQ rời 5-Band", "Integrated USB-C DAC & 5-Band Hardware PEQ"));
 
         fwValTv.setText(hw.connected && !"--".equals(hw.firmwareVersion) ? hw.firmwareVersion : "KT02H20");
-        nvramValTv.setText(unsaved ? "RAM Tạm (Chưa lưu)" : "Đồng bộ Flash");
+        nvramValTv.setText(unsaved
+                ? I18n.tr("RAM Tạm (Chưa lưu)", "Live RAM (Unsaved)")
+                : I18n.tr("Đồng bộ Flash", "Flash Synced"));
         nvramValTv.setTextColor(unsaved ? UiKit.C_AMBER_TEXT : UiKit.C_GREEN);
         srValTv.setText(hw.connected && !"--".equals(hw.sampleRate) ? hw.sampleRate : "384kHz / 32b");
         uacValTv.setText(hw.uacMode == 0 ? "UAC 1.0" : "UAC 2.0");
         uacValTv.setTextColor(UiKit.C_CYAN_TEXT);
-        hidPipeTv.setText("Kênh điều khiển HID: " + hw.activeHidInfo);
+        hidPipeTv.setText(I18n.tr("Kênh điều khiển HID: ", "HID Transport Pipe: ") + hw.activeHidInfo);
 
         for (int i = 0; i < 5; i++) {
             boolean act = (hw.eqPreset == MODE_CODES[i]);
@@ -402,9 +422,9 @@ public final class TabHardwareView extends LinearLayout {
 
         flashCommitBox.setVisibility(hw.connected ? VISIBLE : GONE);
         revertBtn.setVisibility(unsaved ? VISIBLE : GONE);
-        commitFlashBtn.setText("💾 LƯU CỨNG " + modeName.toUpperCase() + " VÀO FLASH");
+        commitFlashBtn.setText(I18n.tr("💾 LƯU CỨNG " + modeName.toUpperCase() + " VÀO FLASH", "💾 COMMIT " + modeName.toUpperCase() + " TO FLASH"));
 
-        micToggleBtn.setText(hw.inlineMic ? "ĐANG BẬT" : "ĐÃ TẮT");
+        micToggleBtn.setText(hw.inlineMic ? I18n.tr("ĐANG BẬT", "ENABLED") : I18n.tr("ĐÃ TẮT", "DISABLED"));
         micToggleBtn.setBackground(UiKit.roundedBox(
                 ctx,
                 hw.inlineMic ? UiKit.C_AMBER_CONTAINER : UiKit.C_SURFACE_HIGHEST,
@@ -435,26 +455,29 @@ public final class TabHardwareView extends LinearLayout {
         sv.addView(tv);
 
         new AlertDialog.Builder(ctx, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                .setTitle("Nhật ký Gói tin USB-C HID (TX / RX)")
+                .setTitle(I18n.tr("Nhật ký Gói tin USB-C HID (TX / RX)", "USB-C HID Packet Log (TX / RX)"))
                 .setView(sv)
-                .setPositiveButton("Sao chép Log", (d, w) -> {
+                .setPositiveButton(I18n.tr("Sao chép Log", "Copy Log"), (d, w) -> {
                     ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
                     if (cm != null) {
                         cm.setPrimaryClip(ClipData.newPlainText("JA11 USB Log", logs));
-                        hostActions.showToast("Đã sao chép nhật ký USB vào bộ nhớ đệm!");
+                        hostActions.showToast(I18n.tr("Đã sao chép nhật ký USB vào bộ nhớ đệm!", "USB log copied to clipboard!"));
                     }
                 })
-                .setNeutralButton("Xóa Log", (d, w) -> controller.clearDebugLogs())
-                .setNegativeButton("Đóng", null)
+                .setNeutralButton(I18n.tr("Xóa Log", "Clear Log"), (d, w) -> controller.clearDebugLogs())
+                .setNegativeButton(I18n.tr("Đóng", "Close"), null)
                 .show();
     }
 
     private void confirmFactoryReset(Context ctx) {
         new AlertDialog.Builder(ctx, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                .setTitle("Khôi phục gốc chip JA11?")
-                .setMessage("Thao tác này sẽ đặt 5 băng tần EQ trên JA11 về mặc định xuất xưởng (0 dB). Kho Profile Offline của bạn vẫn được giữ nguyên.")
-                .setPositiveButton("Khôi phục gốc", (d, w) -> controller.factoryResetPeqAsync())
-                .setNegativeButton("Hủy", null)
+                .setTitle(I18n.tr("Khôi phục gốc chip JA11?", "Factory Reset JA11 PEQ?"))
+                .setMessage(I18n.tr(
+                        "Thao tác này sẽ đặt 5 băng tần EQ trên JA11 về mặc định xuất xưởng (0 dB). Kho Profile Offline của bạn vẫn được giữ nguyên.",
+                        "This will reset all 5 EQ bands on your JA11 to factory flat (0 dB). Your Offline Profile Vault will remain intact."
+                ))
+                .setPositiveButton(I18n.tr("Khôi phục gốc", "Factory Reset"), (d, w) -> controller.factoryResetPeqAsync())
+                .setNegativeButton(I18n.tr("Hủy", "Cancel"), null)
                 .show();
     }
 }

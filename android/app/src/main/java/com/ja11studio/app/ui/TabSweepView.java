@@ -12,10 +12,12 @@ import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.ja11studio.app.core.I18n;
+
 import java.util.Locale;
 
 /**
- * Tab 2 (Native): Dò đỉnh tai — 48kHz AudioTrack Sine Generator, Auto-Sweep 2k->10k, L/R Router, Assign to Band 4.
+ * Tab 2 (Native): Ear Peak Sweep — 48kHz AudioTrack Sine Generator, Auto-Sweep 2k->10k, L/R Router, Assign to Band 4.
  */
 public final class TabSweepView extends ScrollView {
     public interface HostActions {
@@ -54,7 +56,7 @@ public final class TabSweepView extends ScrollView {
         LinearLayout banner = UiKit.cardContainer(ctx, 10f);
         banner.setOrientation(LinearLayout.HORIZONTAL);
         banner.setGravity(Gravity.CENTER_VERTICAL);
-        TextView bTxt = UiKit.label(ctx, "🎧 Đo đỉnh cộng hưởng ống tai (Ear Sweep)", 11.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO_BOLD);
+        TextView bTxt = UiKit.label(ctx, I18n.tr("🎧 Đo đỉnh cộng hưởng ống tai (Ear Sweep)", "🎧 Ear Canal Resonance Sweep"), 11.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO_BOLD);
         bTxt.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         TextView bTag = UiKit.badge(ctx, "PCM 48kHz", UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT);
         banner.addView(bTxt);
@@ -67,7 +69,7 @@ public final class TabSweepView extends ScrollView {
         LinearLayout heroTop = new LinearLayout(ctx);
         heroTop.setOrientation(LinearLayout.HORIZONTAL);
         heroTop.setGravity(Gravity.CENTER_VERTICAL);
-        TextView sLbl = UiKit.label(ctx, "BỘ PHÁT SÓNG ĐƠN SẮC (SINE GEN)", 10.5f, UiKit.C_CYAN_TEXT, UiKit.FONT_MONO_BOLD);
+        TextView sLbl = UiKit.label(ctx, I18n.tr("BỘ PHÁT SÓNG ĐƠN SẮC (SINE GEN)", "PURE SINE WAVE GENERATOR"), 10.5f, UiKit.C_CYAN_TEXT, UiKit.FONT_MONO_BOLD);
         sLbl.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         TextView thdBadge = UiKit.badge(ctx, "FLOAT 32-BIT", UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_MUTED);
         heroTop.addView(sLbl);
@@ -90,13 +92,13 @@ public final class TabSweepView extends ScrollView {
         hzCol.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         freqHeroTv = UiKit.label(ctx, "4.380 Hz", 28f, UiKit.C_AMBER_TEXT, UiKit.FONT_SANS_BOLD);
-        zoneTv = UiKit.label(ctx, "VÙNG CỘNG HƯỞNG TAI (PINNA PEAK)", 10f, UiKit.C_CYAN_TEXT, UiKit.FONT_MONO);
+        zoneTv = UiKit.label(ctx, zoneLabel(4380), 10f, UiKit.C_CYAN_TEXT, UiKit.FONT_MONO);
         hzCol.addView(freqHeroTv);
         hzCol.addView(zoneTv);
 
         TextView assignBtn = UiKit.actionButton(
                 ctx,
-                "⊕ Gán vào B4",
+                I18n.tr("⊕ Gán vào B4", "⊕ Set Band 4"),
                 Color.argb(45, 0, 238, 252),
                 UiKit.C_CYAN_TEXT,
                 UiKit.C_CYAN_CONTAINER,
@@ -117,7 +119,7 @@ public final class TabSweepView extends ScrollView {
         // 2k -> 10k Progress Bar
         LinearLayout progHdr = new LinearLayout(ctx);
         progHdr.setOrientation(LinearLayout.HORIZONTAL);
-        TextView pLbl = UiKit.label(ctx, "Tiến trình dải nhạy (2k → 10k)", 10f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
+        TextView pLbl = UiKit.label(ctx, I18n.tr("Tiến trình dải nhạy (2k → 10k)", "Sensitive band progress (2k → 10k)"), 10f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
         pLbl.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         sweepPctTv = UiKit.label(ctx, "30%", 10f, UiKit.C_AMBER_TEXT, UiKit.FONT_MONO_BOLD);
         progHdr.addView(pLbl);
@@ -134,7 +136,7 @@ public final class TabSweepView extends ScrollView {
         LinearLayout btnRow = new LinearLayout(ctx);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
 
-        playBtn = UiKit.actionButton(ctx, "▶ PHÁT SÓNG SIN", UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 10f, 11.5f);
+        playBtn = UiKit.actionButton(ctx, I18n.tr("▶ PHÁT SÓNG SIN", "▶ PLAY SINE"), UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 10f, 11.5f);
         LinearLayout.LayoutParams pbLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         pbLp.rightMargin = UiKit.dp(ctx, 6f);
         playBtn.setLayoutParams(pbLp);
@@ -143,7 +145,7 @@ public final class TabSweepView extends ScrollView {
             sineEngine.togglePlay();
         });
 
-        sweepBtn = UiKit.actionButton(ctx, "⏩ TỰ QUÉT 2K→10K", UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT, UiKit.C_BORDER, 10f, 11.5f);
+        sweepBtn = UiKit.actionButton(ctx, I18n.tr("⏩ TỰ QUÉT 2K→10K", "⏩ AUTO SWEEP 2K→10K"), UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT, UiKit.C_BORDER, 10f, 11.5f);
         sweepBtn.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         sweepBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
@@ -157,7 +159,7 @@ public final class TabSweepView extends ScrollView {
 
         // 3. Signal Parameters & Stereo Channel Routing
         LinearLayout paramCard = UiKit.cardContainer(ctx, 12f);
-        TextView paramTitle = UiKit.label(ctx, "Thông số sóng thử & Kênh L/R", 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
+        TextView paramTitle = UiKit.label(ctx, I18n.tr("Thông số sóng thử & Kênh L/R", "Tone Parameters & L/R Routing"), 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
         paramCard.addView(paramTitle, UiKit.matchWrapBottomMargin(ctx, 8f));
 
         freqSeek = new SeekBar(ctx);
@@ -201,7 +203,11 @@ public final class TabSweepView extends ScrollView {
         panRow.setOrientation(LinearLayout.HORIZONTAL);
         panRow.setPadding(UiKit.dp(ctx, 4f), UiKit.dp(ctx, 4f), UiKit.dp(ctx, 4f), UiKit.dp(ctx, 4f));
         panRow.setBackground(UiKit.roundedBox(ctx, UiKit.C_SURFACE_LOWEST, 10f, Color.TRANSPARENT, 0f));
-        String[] panLabels = {"◀ Trái (L)", "Cả hai (L+R)", "Phải (R) ▶"};
+        String[] panLabels = {
+                I18n.tr("◀ Trái (L)", "◀ Left (L)"),
+                I18n.tr("Cả hai (L+R)", "Both (L+R)"),
+                I18n.tr("Phải (R) ▶", "Right (R) ▶")
+        };
         final int[] panVals = {-1, 0, 1};
         for (int i = 0; i < 3; i++) {
             final int pv = panVals[i];
@@ -220,16 +226,17 @@ public final class TabSweepView extends ScrollView {
         // Safe Volume Slider
         LinearLayout volHdr = new LinearLayout(ctx);
         volHdr.setOrientation(LinearLayout.HORIZONTAL);
-        TextView vLbl = UiKit.label(ctx, "Âm lượng sóng thử (Khuyến nghị < 20%)", 10.5f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
+        TextView vLbl = UiKit.label(ctx, I18n.tr("Âm lượng sóng thử (Khuyên < 20%)", "Test tone level (Keep < 20%)"), 10.5f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
         vLbl.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        volValTv = UiKit.label(ctx, "15% (SAFE)", 10.5f, UiKit.C_AMBER_TEXT, UiKit.FONT_MONO_BOLD);
+        int initVol = sineEngine.getVolumePercent();
+        volValTv = UiKit.label(ctx, initVol + "% " + (initVol <= 25 ? "(SAFE)" : I18n.tr("(CAO)", "(LOUD)")), 10.5f, UiKit.C_AMBER_TEXT, UiKit.FONT_MONO_BOLD);
         volHdr.addView(vLbl);
         volHdr.addView(volValTv);
         paramCard.addView(volHdr, UiKit.matchWrapBottomMargin(ctx, 4f));
 
         SeekBar volSeek = new SeekBar(ctx);
         volSeek.setMax(100);
-        volSeek.setProgress(sineEngine.getVolumePercent());
+        volSeek.setProgress(initVol);
         volSeek.setProgressTintList(ColorStateList.valueOf(UiKit.C_AMBER_CONTAINER));
         volSeek.setThumbTintList(ColorStateList.valueOf(UiKit.C_AMBER_TEXT));
         volSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -237,7 +244,7 @@ public final class TabSweepView extends ScrollView {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 int v = Math.max(1, progress);
                 sineEngine.setVolumePercent(v);
-                volValTv.setText(v + "% " + (v <= 25 ? "(SAFE)" : "(CAO)"));
+                volValTv.setText(v + "% " + (v <= 25 ? "(SAFE)" : I18n.tr("(CAO)", "(LOUD)")));
             }
 
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
@@ -251,9 +258,9 @@ public final class TabSweepView extends ScrollView {
         LinearLayout refHdr = new LinearLayout(ctx);
         refHdr.setOrientation(LinearLayout.HORIZONTAL);
         refHdr.setGravity(Gravity.CENTER_VERTICAL);
-        TextView refTitle = UiKit.label(ctx, "Tần số tham chiếu nhanh", 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
+        TextView refTitle = UiKit.label(ctx, I18n.tr("Tần số tham chiếu nhanh", "Quick Reference Frequencies"), 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
         refTitle.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        TextView tipBtn = UiKit.actionButton(ctx, "💡 Mẹo dò", UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT, Color.TRANSPARENT, 7f, 10f);
+        TextView tipBtn = UiKit.actionButton(ctx, I18n.tr("💡 Mẹo dò", "💡 Tips"), UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT, Color.TRANSPARENT, 7f, 10f);
         tipBtn.setMinHeight(UiKit.dp(ctx, 30f));
         tipBtn.setOnClickListener(v -> showTipDialog(ctx));
         refHdr.addView(refTitle);
@@ -261,7 +268,14 @@ public final class TabSweepView extends ScrollView {
         refCard.addView(refHdr, UiKit.matchWrapBottomMargin(ctx, 8f));
 
         final int[] refHz = {55, 185, 680, 3200, 4380, 7500};
-        final String[] refLbl = {"55 Hz\nSub-bass", "185 Hz\nMid-bass", "680 Hz\nLow-mid", "3.2 kHz\nPinna", "★ 4.38 kHz\nĐỉnh tai bạn", "7.5 kHz\nSibilance"};
+        final String[] refLbl = {
+                "55 Hz\nSub-bass",
+                "185 Hz\nMid-bass",
+                "680 Hz\nLow-mid",
+                "3.2 kHz\nPinna",
+                I18n.tr("★ 4.38 kHz\nĐỉnh tai bạn", "★ 4.38 kHz\nEar Peak"),
+                "7.5 kHz\nSibilance"
+        };
 
         for (int rowIdx = 0; rowIdx < 2; rowIdx++) {
             LinearLayout r = new LinearLayout(ctx);
@@ -321,14 +335,14 @@ public final class TabSweepView extends ScrollView {
         Context ctx = getContext();
         suppressSeek = true;
         try {
-            freqHeroTv.setText(String.format(Locale.GERMAN, "%,d Hz", hz));
+            freqHeroTv.setText(String.format(Locale.US, "%,d Hz", hz));
             zoneTv.setText(zoneLabel(hz));
             int pct = hz <= 2000 ? 0 : (hz >= 10000 ? 100 : Math.round(((hz - 2000f) / 8000f) * 100f));
             sweepProgress.setProgress(pct);
             sweepPctTv.setText(pct + "%");
             freqSeek.setProgress(Math.min(15000, hz));
 
-            playBtn.setText(playing ? "■ DỪNG PHÁT" : "▶ PHÁT SÓNG SIN");
+            playBtn.setText(playing ? I18n.tr("■ DỪNG PHÁT", "■ STOP TONE") : I18n.tr("▶ PHÁT SÓNG SIN", "▶ PLAY SINE"));
             playBtn.setBackground(UiKit.rippleBox(
                     ctx,
                     playing ? UiKit.C_ERROR_CONTAINER : UiKit.C_AMBER_CONTAINER,
@@ -339,7 +353,7 @@ public final class TabSweepView extends ScrollView {
             ));
             playBtn.setTextColor(playing ? UiKit.C_ON_ERROR_CONTAINER : UiKit.C_ON_AMBER);
 
-            sweepBtn.setText(sweeping ? "⏸ DỪNG TẠI ĐÂY" : "⏩ TỰ QUÉT 2K→10K");
+            sweepBtn.setText(sweeping ? I18n.tr("⏸ DỪNG TẠI ĐÂY", "⏸ STOP HERE") : I18n.tr("⏩ TỰ QUÉT 2K→10K", "⏩ AUTO SWEEP 2K→10K"));
             sweepBtn.setBackground(UiKit.rippleBox(
                     ctx,
                     sweeping ? UiKit.C_ERROR_CONTAINER : UiKit.C_SURFACE_HIGH,
@@ -355,22 +369,27 @@ public final class TabSweepView extends ScrollView {
     }
 
     private static String zoneLabel(int f) {
-        if (f < 100) return "ÂM SIÊU TRẦM (SUB-BASS)";
-        if (f < 300) return "DẢI TRẦM ẤM (MID-BASS)";
-        if (f < 1200) return "DẢI TRUNG ÂM (MID VOCAL)";
-        if (f < 3000) return "DẢI TRUNG CAO (HIGH MID)";
-        if (f <= 5500) return "VÙNG CỘNG HƯỞNG TAI (PINNA PEAK)";
-        if (f < 9000) return "DẢI CHÓI GẮT (TREBLE SIBILANCE)";
-        return "DẢI KHÔNG GIAN & KHÍ (ULTRA-HIGH)";
+        if (f < 100) return I18n.tr("ÂM SIÊU TRẦM (SUB-BASS)", "SUB-BASS REGION");
+        if (f < 300) return I18n.tr("DẢI TRẦM ẤM (MID-BASS)", "MID-BASS WARMTH");
+        if (f < 1200) return I18n.tr("DẢI TRUNG ÂM (MID VOCAL)", "MIDRANGE & VOCALS");
+        if (f < 3000) return I18n.tr("DẢI TRUNG CAO (HIGH MID)", "UPPER MIDRANGE");
+        if (f <= 5500) return I18n.tr("VÙNG CỘNG HƯỞNG TAI (PINNA PEAK)", "EAR CANAL RESONANCE (PINNA PEAK)");
+        if (f < 9000) return I18n.tr("DẢI CHÓI GẮT (TREBLE SIBILANCE)", "TREBLE SIBILANCE ZONE");
+        return I18n.tr("DẢI KHÔNG GIAN & KHÍ (ULTRA-HIGH)", "AIR & ULTRA-HIGH");
     }
 
     private static void showTipDialog(Context ctx) {
         new AlertDialog.Builder(ctx, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                .setTitle("Mẹo bắt đỉnh chói ống tai")
-                .setMessage("1. Để âm lượng sóng thử khoảng 12–15%.\n\n"
-                        + "2. Bấm 'Tự quét 2k→10k' và lắng nghe. Ngay khoảnh khắc tiếng rít nhô to buốt nhất trong tai, chạm 'Dừng tại đây'.\n\n"
-                        + "3. Bấm 'Gán vào B4' để tự động đưa tần số đó sang Band 4 cắt chói (-3.8 dB, Q 3.2) ngay lập tức!")
-                .setPositiveButton("Đã hiểu", null)
+                .setTitle(I18n.tr("Mẹo bắt đỉnh chói ống tai", "How to Find Your Ear Peak"))
+                .setMessage(I18n.tr(
+                        "1. Để âm lượng sóng thử khoảng 12–15%.\n\n"
+                                + "2. Bấm 'Tự quét 2k→10k' và lắng nghe. Ngay khoảnh khắc tiếng rít nhô to buốt nhất trong tai, chạm 'Dừng tại đây'.\n\n"
+                                + "3. Bấm 'Gán vào B4' để tự động đưa tần số đó sang Band 4 cắt chói (-3.8 dB, Q 3.2) ngay lập tức!",
+                        "1. Keep the test tone level around 12–15%.\n\n"
+                                + "2. Tap 'Auto Sweep 2k→10k' and listen carefully. The instant the tone sounds noticeably sharper or louder, tap 'Stop Here'.\n\n"
+                                + "3. Tap 'Set Band 4' to immediately notch out that frequency (-3.8 dB, Q 3.2) on Band 4!"
+                ))
+                .setPositiveButton(I18n.tr("Đã hiểu", "Got it"), null)
                 .show();
     }
 }

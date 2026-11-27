@@ -16,7 +16,7 @@ import android.widget.TextView;
 
 import com.ja11studio.app.core.BiquadMath;
 import com.ja11studio.app.core.BiquadMath.HeadroomResult;
-import com.ja11studio.app.core.PeqModels;
+import com.ja11studio.app.core.I18n;
 import com.ja11studio.app.core.PeqModels.FilterType;
 import com.ja11studio.app.core.PeqModels.HardwareState;
 import com.ja11studio.app.core.PeqModels.PeqBand;
@@ -29,16 +29,22 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Tab 1 (Native): EQ & Âm lượng — 120Hz Interactive Graph, Quick Preset Rail, Output Stage, 5 Band Cards.
+ * Tab 1 (Native): EQ & Volume — 120Hz Interactive Graph, Quick Preset Rail, Output Stage, 5 Band Cards.
  */
 public final class TabEqView extends ScrollView {
     public interface HostActions {
         void onRequestImportXml();
     }
 
-    private static final String[] BAND_NAMES_VI = {
-            "Bass Nền", "Trung Trầm", "Giọng Hát", "Cắt Chói Tai", "Âm Trường Cao"
-    };
+    private static String bandName(int idx) {
+        switch (idx) {
+            case 0: return I18n.tr("Bass Nền", "Sub-Bass");
+            case 1: return I18n.tr("Trung Trầm", "Low-Mid");
+            case 2: return I18n.tr("Giọng Hát", "Vocal");
+            case 3: return I18n.tr("Cắt Chói Tai", "Ear Peak");
+            default: return I18n.tr("Âm Trường Cao", "Treble Air");
+        }
+    }
 
     private final Ja11UsbController controller;
     private final HostActions hostActions;
@@ -99,7 +105,7 @@ public final class TabEqView extends ScrollView {
         teleBar.setBackground(UiKit.roundedBox(ctx, UiKit.C_SURFACE_LOW, 10f, UiKit.C_BORDER, 0.8f));
 
         statusDot = UiKit.label(ctx, "●", 11f, UiKit.C_OUTLINE, UiKit.FONT_MONO_BOLD);
-        statusTitle = UiKit.label(ctx, "CHẾ ĐỘ OFFLINE", 10.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO_BOLD);
+        statusTitle = UiKit.label(ctx, I18n.tr("CHẾ ĐỘ OFFLINE", "OFFLINE MODE"), 10.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO_BOLD);
         LinearLayout.LayoutParams stLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         stLp.leftMargin = UiKit.dp(ctx, 6f);
         statusTitle.setLayoutParams(stLp);
@@ -130,14 +136,14 @@ public final class TabEqView extends ScrollView {
         graphHdr.setOrientation(LinearLayout.HORIZONTAL);
         graphHdr.setGravity(Gravity.CENTER_VERTICAL);
 
-        TextView graphTitle = UiKit.label(ctx, "✦ Đáp Tuyến PEQ", 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
+        TextView graphTitle = UiKit.label(ctx, I18n.tr("✦ Đáp Tuyến PEQ", "✦ PEQ Response"), 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
         activeProfileTv = UiKit.label(ctx, " • Custom Ear 4380Hz", 10.5f, UiKit.C_AMBER_TEXT, UiKit.FONT_MONO);
         activeProfileTv.setSingleLine(true);
         LinearLayout.LayoutParams apLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         apLp.leftMargin = UiKit.dp(ctx, 4f);
         activeProfileTv.setLayoutParams(apLp);
 
-        revertBtn = UiKit.actionButton(ctx, "↺ Hoàn tác", UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT, Color.TRANSPARENT, 7f, 10f);
+        revertBtn = UiKit.actionButton(ctx, I18n.tr("↺ Hoàn tác", "↺ Revert"), UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT, Color.TRANSPARENT, 7f, 10f);
         revertBtn.setMinHeight(UiKit.dp(ctx, 30f));
         revertBtn.setPadding(UiKit.dp(ctx, 8f), UiKit.dp(ctx, 4f), UiKit.dp(ctx, 8f), UiKit.dp(ctx, 4f));
         revertBtn.setVisibility(GONE);
@@ -195,7 +201,7 @@ public final class TabEqView extends ScrollView {
 
         selectedBandReadout = UiKit.label(ctx, "B4 • 4380 Hz • -3.8 dB • Q 3.20", 11f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO);
         selectedBandReadout.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        TextView iirBadge = UiKit.badge(ctx, "PINCH = ĐỔI Q", UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT);
+        TextView iirBadge = UiKit.badge(ctx, I18n.tr("PINCH = ĐỔI Q", "PINCH = Q"), UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT);
         readoutBar.addView(selectedBandReadout);
         readoutBar.addView(iirBadge);
         graphCard.addView(readoutBar, UiKit.matchWrapBottomMargin(ctx, 8f));
@@ -211,12 +217,12 @@ public final class TabEqView extends ScrollView {
 
         root.addView(graphCard, UiKit.matchWrapBottomMargin(ctx, 10f));
 
-        // 3. Output Stage (Tầng Xuất: DAC Volume 0..60 + Master Preamp)
+        // 3. Output Stage (DAC Volume 0..60 + Master Preamp)
         LinearLayout outCard = UiKit.cardContainer(ctx, 11f);
         LinearLayout outHdr = new LinearLayout(ctx);
         outHdr.setOrientation(LinearLayout.HORIZONTAL);
         outHdr.setGravity(Gravity.CENTER_VERTICAL);
-        TextView outTitle = UiKit.label(ctx, "🎚 Tầng Xuất (Volume & Preamp)", 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
+        TextView outTitle = UiKit.label(ctx, I18n.tr("🎚 Tầng Xuất (Volume & Preamp)", "🎚 Output Stage (Volume & Preamp)"), 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
         outTitle.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         TextView regBadge = UiKit.label(ctx, "REG 0x02", 10f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
         outHdr.addView(outTitle);
@@ -233,7 +239,7 @@ public final class TabEqView extends ScrollView {
         LinearLayout volRow = new LinearLayout(ctx);
         volRow.setOrientation(LinearLayout.HORIZONTAL);
         volRow.setGravity(Gravity.CENTER_VERTICAL);
-        TextView volLbl = UiKit.label(ctx, "Âm lượng DAC phần cứng", 11.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO);
+        TextView volLbl = UiKit.label(ctx, I18n.tr("Âm lượng DAC phần cứng", "Hardware DAC Volume"), 11.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO);
         volLbl.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         TextView pc32Btn = UiKit.actionButton(ctx, "32 (Min)", UiKit.C_SURFACE_HIGHEST, UiKit.C_CYAN_TEXT, Color.TRANSPARENT, 6f, 9.5f);
@@ -244,7 +250,7 @@ public final class TabEqView extends ScrollView {
             controller.updateDeviceVolumeLive(32);
         });
 
-        TextView clean48Btn = UiKit.actionButton(ctx, "48 (Sạch)", UiKit.C_SURFACE_HIGHEST, UiKit.C_GREEN, Color.TRANSPARENT, 6f, 9.5f);
+        TextView clean48Btn = UiKit.actionButton(ctx, I18n.tr("48 (Sạch)", "48 (Clean)"), UiKit.C_SURFACE_HIGHEST, UiKit.C_GREEN, Color.TRANSPARENT, 6f, 9.5f);
         clean48Btn.setMinHeight(UiKit.dp(ctx, 28f));
         clean48Btn.setPadding(UiKit.dp(ctx, 7f), UiKit.dp(ctx, 3f), UiKit.dp(ctx, 7f), UiKit.dp(ctx, 3f));
         LinearLayout.LayoutParams c48Lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -285,7 +291,10 @@ public final class TabEqView extends ScrollView {
 
         volWarnTv = UiKit.label(
                 ctx,
-                "Khuyên dùng 32–60/60 (dưới 32 dễ rè liên tục trên chip KT02H20)",
+                I18n.tr(
+                        "Khuyên dùng 32–60/60 (dưới 32 dễ rè liên tục trên chip KT02H20)",
+                        "Recommended 32–60/60 (below 32 may crackle on KT02H20)"
+                ),
                 9.5f,
                 UiKit.C_TEXT_MUTED,
                 UiKit.FONT_MONO
@@ -344,7 +353,7 @@ public final class TabEqView extends ScrollView {
         });
         preBox.addView(preampSeek, UiKit.matchWrapBottomMargin(ctx, 3f));
 
-        headroomTv = UiKit.label(ctx, "Headroom an toàn", 10f, UiKit.C_GREEN, UiKit.FONT_MONO);
+        headroomTv = UiKit.label(ctx, I18n.tr("Headroom an toàn", "Safe Headroom"), 10f, UiKit.C_GREEN, UiKit.FONT_MONO);
         headroomTv.setGravity(Gravity.CENTER_HORIZONTAL);
         preBox.addView(headroomTv);
         outCard.addView(preBox);
@@ -354,9 +363,9 @@ public final class TabEqView extends ScrollView {
         LinearLayout bandsHdr = new LinearLayout(ctx);
         bandsHdr.setOrientation(LinearLayout.HORIZONTAL);
         bandsHdr.setGravity(Gravity.CENTER_VERTICAL);
-        TextView bHdrTitle = UiKit.label(ctx, "Băng Tần Chi Tiết (5 Bands)", 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
+        TextView bHdrTitle = UiKit.label(ctx, I18n.tr("Băng Tần Chi Tiết (5 Bands)", "5-Band Parametric EQ"), 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
         bHdrTitle.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        TextView bHdrSub = UiKit.label(ctx, "CHẠM SỐ ĐỂ NHẬP CHÍNH XÁC", 9.5f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
+        TextView bHdrSub = UiKit.label(ctx, I18n.tr("CHẠM SỐ ĐỂ NHẬP CHÍNH XÁC", "TAP VALUE TO TYPE"), 9.5f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
         bandsHdr.addView(bHdrTitle);
         bandsHdr.addView(bHdrSub);
         root.addView(bandsHdr, UiKit.matchWrapBottomMargin(ctx, 8f));
@@ -372,11 +381,11 @@ public final class TabEqView extends ScrollView {
         footer.setOrientation(LinearLayout.HORIZONTAL);
         footer.setGravity(Gravity.CENTER_VERTICAL);
 
-        footerMsgTv = UiKit.label(ctx, "Sẵn sàng", 10.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO);
+        footerMsgTv = UiKit.label(ctx, I18n.tr("Sẵn sàng", "Ready"), 10.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_MONO);
         footerMsgTv.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         footerMsgTv.setMaxLines(2);
 
-        TextView importXmlBtn = UiKit.actionButton(ctx, "Nhập XML", UiKit.C_SURFACE_CONTAINER, UiKit.C_TEXT_PRIMARY, UiKit.C_BORDER, 8f, 10.5f);
+        TextView importXmlBtn = UiKit.actionButton(ctx, I18n.tr("Nhập XML", "Import XML"), UiKit.C_SURFACE_CONTAINER, UiKit.C_TEXT_PRIMARY, UiKit.C_BORDER, 8f, 10.5f);
         importXmlBtn.setMinHeight(UiKit.dp(ctx, 38f));
         LinearLayout.LayoutParams impLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         impLp.leftMargin = UiKit.dp(ctx, 6f);
@@ -386,7 +395,7 @@ public final class TabEqView extends ScrollView {
             hostActions.onRequestImportXml();
         });
 
-        saveChipBtn = UiKit.actionButton(ctx, "💾 Lưu Chip", UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 8f, 10.5f);
+        saveChipBtn = UiKit.actionButton(ctx, I18n.tr("💾 Lưu Chip", "💾 Save Chip"), UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 8f, 10.5f);
         saveChipBtn.setMinHeight(UiKit.dp(ctx, 38f));
         LinearLayout.LayoutParams svLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         svLp.leftMargin = UiKit.dp(ctx, 6f);
@@ -491,8 +500,8 @@ public final class TabEqView extends ScrollView {
         try {
             statusDot.setTextColor(hw.connected ? UiKit.C_GREEN : UiKit.C_OUTLINE);
             statusTitle.setText(hw.connected
-                    ? (unsaved ? "DSP RAM LIVE (CHƯA LƯU CHIP)" : "DSP ONLINE")
-                    : "CHẾ ĐỘ OFFLINE");
+                    ? (unsaved ? I18n.tr("DSP RAM LIVE (CHƯA LƯU CHIP)", "DSP RAM LIVE (UNSAVED)") : "DSP ONLINE")
+                    : I18n.tr("CHẾ ĐỘ OFFLINE", "OFFLINE MODE"));
 
             sampleRateBadge.setText(hw.connected && !"--".equals(hw.sampleRate) ? hw.sampleRate : "384kHz");
             fwBadge.setText(hw.connected && !"--".equals(hw.firmwareVersion) ? hw.firmwareVersion : "32-BIT");
@@ -505,7 +514,7 @@ public final class TabEqView extends ScrollView {
 
             PeqBand selB = live.bands[selectedBand];
             selectedBandReadout.setText(bypassed
-                    ? "EQ TẮT • Đường đáp tuyến phẳng (Hardware Bypass 0 dB)"
+                    ? I18n.tr("EQ TẮT • Đường đáp tuyến phẳng (Hardware Bypass 0 dB)", "EQ OFF • Flat Hardware Bypass (0 dB)")
                     : String.format(Locale.US, "B%d • %d Hz • %+.1f dB • Q %.2f",
                     selectedBand + 1, selB.freq, selB.gain, selB.q));
 
@@ -516,8 +525,14 @@ public final class TabEqView extends ScrollView {
             volValueTv.setTextColor(lowVolRisk ? UiKit.C_ERROR : UiKit.C_CYAN_TEXT);
             volWarnTv.setTextColor(lowVolRisk ? UiKit.C_ERROR : UiKit.C_TEXT_MUTED);
             volWarnTv.setText(lowVolRisk
-                    ? "⚠ Dưới 32/60 dễ rè trên KT02H20 — nên giữ ≥ 32 và giảm bằng âm lượng máy!"
-                    : "Vùng sạch tiếng (32–60/60) • Giảm thêm bằng âm lượng máy hoặc Master Gain");
+                    ? I18n.tr(
+                            "⚠ Dưới 32/60 dễ rè trên KT02H20 — nên giữ ≥ 32 và giảm bằng âm lượng máy!",
+                            "⚠ Below 32/60 may crackle on KT02H20 — keep ≥ 32 and use phone volume!"
+                    )
+                    : I18n.tr(
+                            "Vùng sạch tiếng (32–60/60) • Giảm thêm bằng âm lượng máy hoặc Master Gain",
+                            "Clean zone (32–60/60) • Lower volume via phone volume or Master Gain"
+                    ));
             volSeek.setProgress(hw.deviceVolume);
 
             preampValueTv.setText(String.format(Locale.US, "%+.1f dB", live.masterGain));
@@ -530,8 +545,12 @@ public final class TabEqView extends ScrollView {
                     : "Safe -12dB");
             headroomTv.setTextColor(clip ? UiKit.C_ERROR : UiKit.C_GREEN);
             headroomTv.setText(clip
-                    ? String.format(Locale.US, "Cảnh báo vượt đỉnh: +%.1f dB (chạm Auto để hạ)", hr.maxNetOutputDb)
-                    : String.format(Locale.US, "Headroom an toàn (Đỉnh thực: %.1f dB)", hr.maxNetOutputDb));
+                    ? String.format(Locale.US,
+                            I18n.tr("Cảnh báo vượt đỉnh: +%.1f dB (chạm Auto để hạ)", "Clipping risk: +%.1f dB (tap Auto to trim)"),
+                            hr.maxNetOutputDb)
+                    : String.format(Locale.US,
+                            I18n.tr("Headroom an toàn (Đỉnh thực: %.1f dB)", "Safe headroom (Net peak: %.1f dB)"),
+                            hr.maxNetOutputDb));
 
             for (int i = 0; i < 5; i++) {
                 bindBandCard(ctx, bandCards[i], i, live.bands[i], i == selectedBand);
@@ -558,7 +577,7 @@ public final class TabEqView extends ScrollView {
         top.setGravity(Gravity.CENTER_VERTICAL);
 
         h.numBadge = UiKit.badge(ctx, String.valueOf(idx + 1), UiKit.C_AMBER_TEXT, UiKit.C_ON_AMBER);
-        h.nameTv = UiKit.label(ctx, BAND_NAMES_VI[idx], 13.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
+        h.nameTv = UiKit.label(ctx, bandName(idx), 13.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
         LinearLayout.LayoutParams nmLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         nmLp.leftMargin = UiKit.dp(ctx, 8f);
         h.nameTv.setLayoutParams(nmLp);
@@ -590,7 +609,7 @@ public final class TabEqView extends ScrollView {
         h.freqValBtn = createSliderRow(
                 ctx,
                 h.card,
-                "Tần số",
+                I18n.tr("Tần số", "Freq"),
                 1000,
                 UiKit.C_TEXT_PRIMARY,
                 seek -> h.freqSeek = seek,
@@ -601,7 +620,8 @@ public final class TabEqView extends ScrollView {
                     PeqBand cur = controller.getLivePeq().bands[idx];
                     controller.updateBandLive(idx, cur.withFreq(hz));
                 },
-                () -> promptExactNumber(ctx, "Nhập Tần số Band " + (idx + 1) + " (20–20000 Hz)",
+                () -> promptExactNumber(ctx,
+                        I18n.tr("Nhập Tần số Band " + (idx + 1) + " (20–20000 Hz)", "Band " + (idx + 1) + " Frequency (20–20000 Hz)"),
                         String.valueOf(controller.getLivePeq().bands[idx].freq), false, val -> {
                             selectedBand = idx;
                             controller.updateBandLive(idx, controller.getLivePeq().bands[idx].withFreq(Math.round(val)));
@@ -622,7 +642,8 @@ public final class TabEqView extends ScrollView {
                     PeqBand cur = controller.getLivePeq().bands[idx];
                     controller.updateBandLive(idx, cur.withGain(db));
                 },
-                () -> promptExactNumber(ctx, "Nhập Gain Band " + (idx + 1) + " (-12.0 .. +12.0 dB)",
+                () -> promptExactNumber(ctx,
+                        I18n.tr("Nhập Gain Band " + (idx + 1) + " (-12.0 .. +12.0 dB)", "Band " + (idx + 1) + " Gain (-12.0 .. +12.0 dB)"),
                         String.valueOf(controller.getLivePeq().bands[idx].gain), true, val -> {
                             selectedBand = idx;
                             controller.updateBandLive(idx, controller.getLivePeq().bands[idx].withGain(val));
@@ -633,7 +654,7 @@ public final class TabEqView extends ScrollView {
         h.qValBtn = createSliderRow(
                 ctx,
                 h.card,
-                "Độ rộng Q",
+                I18n.tr("Độ rộng Q", "Q Factor"),
                 198,
                 UiKit.C_CYAN_CONTAINER,
                 seek -> h.qSeek = seek,
@@ -643,7 +664,8 @@ public final class TabEqView extends ScrollView {
                     PeqBand cur = controller.getLivePeq().bands[idx];
                     controller.updateBandLive(idx, cur.withQ(q));
                 },
-                () -> promptExactNumber(ctx, "Nhập Q Band " + (idx + 1) + " (0.10 .. 10.00)",
+                () -> promptExactNumber(ctx,
+                        I18n.tr("Nhập Q Band " + (idx + 1) + " (0.10 .. 10.00)", "Band " + (idx + 1) + " Q Factor (0.10 .. 10.00)"),
                         String.valueOf(controller.getLivePeq().bands[idx].q), true, val -> {
                             selectedBand = idx;
                             controller.updateBandLive(idx, controller.getLivePeq().bands[idx].withQ(val));
@@ -771,14 +793,14 @@ public final class TabEqView extends ScrollView {
         new AlertDialog.Builder(ctx, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setTitle(title)
                 .setView(input)
-                .setPositiveButton("Áp dụng", (d, w) -> {
+                .setPositiveButton(I18n.tr("Áp dụng", "Apply"), (d, w) -> {
                     try {
                         float v = Float.parseFloat(input.getText().toString().trim());
                         cb.onValue(v);
                     } catch (Exception ignored) {
                     }
                 })
-                .setNegativeButton("Hủy", null)
+                .setNegativeButton(I18n.tr("Hủy", "Cancel"), null)
                 .show();
     }
 

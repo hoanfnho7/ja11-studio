@@ -19,6 +19,7 @@ import { PresetVaultAndCloud } from './components/PresetVaultAndCloud';
 import { SineSweepPanel } from './components/SineSweepPanel';
 import { computePeakResponseDb } from './core/biquadMath';
 import { parseAnyPresetFile } from './core/fiioXml';
+import { Lang, detectInitialLang, saveLang, tr } from './core/i18n';
 import { DEFAULT_NEUTRAL_BANDS, EQ_PRESET_NAMES, FilterType, PeqProfile } from './core/ja11Protocol';
 import { EngineState, ja11Engine } from './core/liveSyncEngine';
 import { upsertVaultProfile } from './services/presetVault';
@@ -26,16 +27,14 @@ import { AndroidUsbTransport, isRunningInsideAndroidApk } from './transports/and
 import { WebHidTransport } from './transports/webHidTransport';
 
 export const App: React.FC = () => {
+  const [lang, setLang] = useState<Lang>(() => detectInitialLang());
   const [engineState, setEngineState] = useState<EngineState>(() => ja11Engine.getState());
   const [selectedBand, setSelectedBand] = useState(3); // Default Band 4 (4380Hz ear peak)
   const [activeSweepHz, setActiveSweepHz] = useState<number | null>(null);
-  const [activeProfileName, setActiveProfileName] = useState<string>(
-    'JD1 + JA11 | Custom Ear 4380Hz (Chuẩn tai bạn)',
-  );
+  const [activeProfileName, setActiveProfileName] = useState<string>('JD1 + JA11 | Custom Ear 4380Hz');
   const [dragOverlay, setDragOverlay] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Sticky Follow-Along EQ Graph state (for screens < 1280px; on 1920x1080 2-column layout it's permanently side-by-side!)
   const [stickyFollow, setStickyFollow] = useState(true);
   const [isGraphDocked, setIsGraphDocked] = useState(false);
   const [dockCompact, setDockCompact] = useState(true);
@@ -50,6 +49,11 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    saveLang(lang);
+    document.documentElement.lang = lang;
+  }, [lang]);
+
+  useEffect(() => {
     const el = graphSentinelRef.current;
     if (!el || typeof IntersectionObserver === 'undefined') return;
     const obs = new IntersectionObserver(
@@ -62,6 +66,8 @@ export const App: React.FC = () => {
     obs.observe(el);
     return () => obs.disconnect();
   }, [engineState.hardware.connected, isPreviewConnected]);
+
+  const toggleLang = () => setLang((prev) => (prev === 'vi' ? 'en' : 'vi'));
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -84,7 +90,9 @@ export const App: React.FC = () => {
     e.preventDefault();
     setDragOverlay(false);
     if (!isUnlocked) {
-      showToast('Hãy kết nối FiiO JA11 trước khi thả file Profile!');
+      showToast(
+        tr(lang, 'Hãy kết nối FiiO JA11 trước khi thả file Profile!', 'Please connect FiiO JA11 before dropping preset files!'),
+      );
       return;
     }
     const file = e.dataTransfer.files?.[0];
@@ -99,7 +107,9 @@ export const App: React.FC = () => {
       });
       setActiveProfileName(profile.name);
       ja11Engine.applySnapshotLive(profile, profile.name);
-      showToast(`Đã thả & áp dụng nghe thử file "${profile.name}"!`);
+      showToast(
+        tr(lang, `Đã thả & áp dụng "${profile.name}"!`, `Imported & applied "${profile.name}" live to RAM!`),
+      );
     } catch (err) {
       showToast(err instanceof Error ? err.message : String(err));
     }
@@ -129,8 +139,7 @@ export const App: React.FC = () => {
   const clippingRisk = headroom.maxNetOutputDb > 0.2;
   const showDockedChrome = stickyFollow && isGraphDocked;
   const activeBand = effectiveState.livePeq.bands[selectedBand] ?? effectiveState.livePeq.bands[0];
-  const webHidAvailable =
-    typeof navigator !== 'undefined' && 'hid' in navigator;
+  const webHidAvailable = typeof navigator !== 'undefined' && 'hid' in navigator;
 
   return (
     <div
@@ -145,9 +154,15 @@ export const App: React.FC = () => {
       {dragOverlay && (
         <div className="fixed inset-0 z-50 bg-cyan-950/75 backdrop-blur-sm border-2 border-dashed border-cyan-400 flex items-center justify-center pointer-events-none">
           <div className="text-center space-y-1">
-            <p className="text-lg font-bold text-cyan-300">Thả file FiiO .XML / AutoEQ .TXT vào đây</p>
+            <p className="text-lg font-bold text-cyan-300">
+              {tr(lang, 'Thả file FiiO .XML / AutoEQ .TXT vào đây', 'Drop FiiO .XML / AutoEQ .TXT here')}
+            </p>
             <p className="text-xs text-slate-300">
-              Tự động nạp nghe thử Live trên RAM (không ghi đè bộ nhớ gốc)
+              {tr(
+                lang,
+                'Tự động nạp nghe thử Live trên RAM (không ghi đè bộ nhớ gốc)',
+                'Applies live to DSP RAM without overwriting Flash memory',
+              )}
             </p>
           </div>
         </div>
@@ -161,6 +176,8 @@ export const App: React.FC = () => {
 
       {/* 1. Locked Single-Row Studio Top Bar */}
       <HardwareControlBar
+        lang={lang}
+        onToggleLang={toggleLang}
         engineState={effectiveState}
         onConnect={() => void handleConnect()}
         onDisconnect={() => void ja11Engine.disconnect()}
@@ -186,16 +203,24 @@ export const App: React.FC = () => {
 
             <div className="space-y-2">
               <h1 className="text-2xl font-bold tracking-tight text-slate-100">
-                Kết nối FiiO / JadeAudio JA11
+                {tr(lang, 'Kết nối FiiO / JadeAudio JA11', 'Connect FiiO / JadeAudio JA11')}
               </h1>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Cắm DAC <span className="text-cyan-300 font-medium">FiiO JA11</span> vào cổng USB máy tính rồi nhấn nút bên dưới để đọc thông số trực tiếp từ chip và mở khóa toàn bộ bảng điều khiển Studio.
+                {tr(
+                  lang,
+                  'Cắm DAC FiiO JA11 vào cổng USB máy tính rồi nhấn nút bên dưới để đọc thông số trực tiếp từ chip và mở khóa toàn bộ bảng điều khiển Studio.',
+                  'Plug your FiiO / JadeAudio JA11 USB-C DAC into your computer and click Connect below to read live hardware parameters and unlock the PEQ Studio.',
+                )}
               </p>
             </div>
 
             {!webHidAvailable && !isRunningInsideAndroidApk() && (
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs">
-                Trình duyệt hiện tại chưa hỗ trợ WebHID. Vui lòng mở bằng <strong>Chrome</strong>, <strong>Edge</strong> hoặc <strong>Opera</strong> trên PC (hoặc tải App Android bên dưới).
+                {tr(
+                  lang,
+                  'Trình duyệt hiện tại chưa hỗ trợ WebHID. Vui lòng mở bằng Chrome, Edge hoặc Opera trên PC (hoặc tải App Android bên dưới).',
+                  'WebHID is not supported in this browser. Please open with Chrome, Edge, or Opera on desktop (or use our Native Android APK below).',
+                )}
               </div>
             )}
 
@@ -205,49 +230,76 @@ export const App: React.FC = () => {
                 className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 active:scale-[0.98] text-slate-950 font-bold text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/20"
               >
                 <Usb className="w-5 h-5" />
-                Kết nối FiiO JA11 ngay
+                {tr(lang, 'Kết nối FiiO JA11 ngay', 'Connect FiiO JA11')}
               </button>
 
               {!isRunningInsideAndroidApk() && (
                 <a
-                  href="https://github.com/hoanfnho7/ja11-studio/releases/latest/download/JA11-Studio-v3.1.apk"
+                  href="https://github.com/hoanfnho7/ja11-studio/releases/latest/download/JA11-Studio-v3.2.apk"
                   target="_blank"
                   rel="noreferrer"
                   className="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium text-sm transition flex items-center justify-center gap-2"
                 >
                   <Smartphone className="w-4 h-4 text-cyan-400" />
-                  Tải App Android (.APK v3.1)
+                  {tr(lang, 'Tải App Android (.APK v3.2)', 'Download Android App (.APK v3.2)')}
                 </a>
               )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 text-left text-xs">
               <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-1">
-                <span className="font-mono text-cyan-400 font-semibold">01 / CẮM USB</span>
-                <p className="text-slate-400 text-[11px]">Cắm JA11 (kèm tai nghe JD1/IEM) vào cổng USB-C hoặc USB-A.</p>
+                <span className="font-mono text-cyan-400 font-semibold">
+                  {tr(lang, '01 / CẮM USB', '01 / PLUG USB')}
+                </span>
+                <p className="text-slate-400 text-[11px]">
+                  {tr(
+                    lang,
+                    'Cắm JA11 (kèm tai nghe IEM) vào cổng USB-C hoặc USB-A.',
+                    'Connect your JA11 dongle & headphones to a USB-C or USB-A port.',
+                  )}
+                </p>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-1">
-                <span className="font-mono text-cyan-400 font-semibold">02 / CHỌN THIẾT BỊ</span>
-                <p className="text-slate-400 text-[11px]">Chọn <strong>JadeAudio JA11</strong> trên hộp thoại trình duyệt và bấm Connect.</p>
+                <span className="font-mono text-cyan-400 font-semibold">
+                  {tr(lang, '02 / CHỌN THIẾT BỊ', '02 / AUTHORIZE')}
+                </span>
+                <p className="text-slate-400 text-[11px]">
+                  {tr(
+                    lang,
+                    'Chọn JadeAudio JA11 trên hộp thoại trình duyệt và bấm Connect.',
+                    'Select JadeAudio JA11 in the browser WebHID picker and click Connect.',
+                  )}
+                </p>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-1">
-                <span className="font-mono text-cyan-400 font-semibold">03 / CHỈNH LIVE RAM</span>
-                <p className="text-slate-400 text-[11px]">Tự sao lưu Profile gốc, nghe thử không ghi đè, xem đồ thị song song 16:9.</p>
+                <span className="font-mono text-cyan-400 font-semibold">
+                  {tr(lang, '03 / CHỈNH LIVE RAM', '03 / LIVE RAM EQ')}
+                </span>
+                <p className="text-slate-400 text-[11px]">
+                  {tr(
+                    lang,
+                    'Tự sao lưu Profile gốc, nghe thử không ghi đè, xem đồ thị song song 16:9.',
+                    'Safe RAM preview with instant Revert, plus live 814+ FiiO Cloud & AutoEQ.',
+                  )}
+                </p>
               </div>
             </div>
 
             <div className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-1">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-              <span className="truncate">{effectiveState.lastMessage}</span>
+              <span className="truncate">
+                {lang === 'vi'
+                  ? effectiveState.lastMessage
+                  : 'Ready — Plug in FiiO JA11 via USB to start live DSP tuning.'}
+              </span>
             </div>
           </div>
         </div>
       ) : (
         /* 3. Unlocked 1920x1080 (16:9) 2-Column Widescreen Studio Workspace */
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-start">
-          {/* LEFT STUDIO DECK (xl:col-span-7 -> Graph + Volume/Preamp + 5 Bands + Sine Sweep, always visible!) */}
+          {/* LEFT STUDIO DECK (xl:col-span-7) */}
           <div className="xl:col-span-7 space-y-3 xl:sticky xl:top-3">
-            {/* Sentinel for compact docking on smaller (< 1280px) screens */}
             <div ref={graphSentinelRef} className="h-px w-full -my-1 pointer-events-none xl:hidden" />
 
             {/* Live Interactive PEQ Graph Card */}
@@ -279,18 +331,18 @@ export const App: React.FC = () => {
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     onClick={() => {
-                      setActiveProfileName('Phẳng 0 dB');
+                      const flatName = tr(lang, 'Phẳng 0 dB', 'Flat 0 dB');
+                      setActiveProfileName(flatName);
                       ja11Engine.applySnapshotLive(
                         { masterGain: effectiveState.livePeq.masterGain, bands: DEFAULT_NEUTRAL_BANDS },
-                        'Phẳng 0 dB',
+                        flatName,
                       );
                     }}
                     className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] cursor-pointer"
                   >
-                    Đặt Flat 0dB
+                    {tr(lang, 'Đặt Flat 0dB', 'Reset Flat 0dB')}
                   </button>
 
-                  {/* Sticky dock buttons for < 1280px screens */}
                   <div className="flex xl:hidden items-center gap-1.5">
                     {showDockedChrome && effectiveState.hasUnsavedRamChanges && (
                       <button
@@ -339,12 +391,13 @@ export const App: React.FC = () => {
               </div>
 
               <InteractiveEqCanvas
+                lang={lang}
                 livePeq={effectiveState.livePeq}
                 savedSnapshot={effectiveState.savedFlashSnapshot}
                 selectedBand={selectedBand}
                 onSelectBand={setSelectedBand}
                 onChangeBand={(idx, patch) => {
-                  setActiveProfileName('Tùy chỉnh Live');
+                  setActiveProfileName(tr(lang, 'Tùy chỉnh Live', 'Live Custom'));
                   ja11Engine.updateBandLive(idx, patch);
                 }}
                 activeSweepHz={activeSweepHz}
@@ -358,7 +411,7 @@ export const App: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-slate-200 flex items-center gap-1.5">
                     <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
-                    Âm lượng DAC (0–60)
+                    {tr(lang, 'Âm lượng DAC (0–60)', 'DAC Hardware Volume (0–60)')}
                   </span>
                   <span
                     className={`font-mono font-semibold ${
@@ -381,21 +434,25 @@ export const App: React.FC = () => {
                   <button
                     onClick={() => ja11Engine.updateDeviceVolumeLive(32)}
                     className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 shrink-0 cursor-pointer"
-                    title="Mức nhỏ nhất an toàn không rè trên chip KT02H20"
+                    title={tr(lang, 'Mức nhỏ nhất an toàn không rè trên chip KT02H20', 'Minimum clean step on KT02H20 without crackling')}
                   >
                     32 (Min)
                   </button>
                   <button
                     onClick={() => ja11Engine.updateDeviceVolumeLive(48)}
                     className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 shrink-0 cursor-pointer"
-                    title="Mức sạch nền tối ưu trên chip KT02H20 (sau đó hạ bằng âm lượng Windows)"
+                    title={tr(lang, 'Mức sạch nền tối ưu trên chip KT02H20', 'Clean optimal gain step on KT02H20')}
                   >
-                    48 (Sạch)
+                    {tr(lang, '48 (Sạch)', '48 (Clean)')}
                   </button>
                 </div>
                 {effectiveState.hardware.deviceVolume < 32 && (
                   <p className="text-[10px] text-rose-400 leading-snug">
-                    ⚠ Dưới 32/60 dễ gây rè liên tục trên chip KT02H20 — nên giữ ≥ 32 và hạ thêm bằng âm lượng Windows hoặc Master Gain.
+                    {tr(
+                      lang,
+                      '⚠ Dưới 32/60 dễ gây rè liên tục trên chip KT02H20 — nên giữ ≥ 32 và hạ thêm bằng âm lượng Windows hoặc Master Gain.',
+                      '⚠ Below 32/60 may cause continuous crackling on KT02H20 — keep ≥ 32 and attenuate via OS Volume or Master Gain.',
+                    )}
                   </p>
                 )}
               </div>
@@ -428,6 +485,7 @@ export const App: React.FC = () => {
                     <button
                       onClick={() => ja11Engine.updateMasterGainLive(headroom.recommendedMasterGain)}
                       className="px-2 py-1 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30 flex items-center gap-1 shrink-0 cursor-pointer"
+                      title={tr(lang, 'Hạ Preamp tự động chống vỡ tiếng', 'Auto-attenuate preamp to prevent clipping')}
                     >
                       <ShieldAlert className="w-3 h-3" />
                       {headroom.recommendedMasterGain}dB
@@ -437,7 +495,7 @@ export const App: React.FC = () => {
               </div>
             </div>
 
-            {/* 5-Band Precision Controls (Always 5 columns side-by-side on Desktop!) */}
+            {/* 5-Band Precision Controls */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2">
               {effectiveState.livePeq.bands.map((band, idx) => {
                 const isSel = idx === selectedBand;
@@ -466,7 +524,7 @@ export const App: React.FC = () => {
                       <select
                         value={band.type}
                         onChange={(e) => {
-                          setActiveProfileName('Tùy chỉnh Live');
+                          setActiveProfileName(tr(lang, 'Tùy chỉnh Live', 'Live Custom'));
                           ja11Engine.updateBandLive(idx, { type: e.target.value as FilterType });
                         }}
                         className="px-1 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] text-slate-200 cursor-pointer"
@@ -477,7 +535,6 @@ export const App: React.FC = () => {
                       </select>
                     </div>
 
-                    {/* Frequency */}
                     <div>
                       <div className="flex items-center justify-between text-[10px]">
                         <span className="text-slate-400">Hz</span>
@@ -487,7 +544,7 @@ export const App: React.FC = () => {
                           max={20000}
                           value={band.freq}
                           onChange={(e) => {
-                            setActiveProfileName('Tùy chỉnh Live');
+                            setActiveProfileName(tr(lang, 'Tùy chỉnh Live', 'Live Custom'));
                             ja11Engine.updateBandLive(idx, { freq: Number(e.target.value) });
                           }}
                           className="w-16 px-1 py-0.5 rounded bg-slate-950 border border-slate-800 text-right font-mono text-[11px] text-slate-100"
@@ -507,14 +564,13 @@ export const App: React.FC = () => {
                           const hz = Math.round(
                             Math.pow(10, Math.log10(20) + r * (Math.log10(20000) - Math.log10(20))),
                           );
-                          setActiveProfileName('Tùy chỉnh Live');
+                          setActiveProfileName(tr(lang, 'Tùy chỉnh Live', 'Live Custom'));
                           ja11Engine.updateBandLive(idx, { freq: hz });
                         }}
                         className="w-full cursor-pointer"
                       />
                     </div>
 
-                    {/* Gain */}
                     <div>
                       <div className="flex items-center justify-between text-[10px]">
                         <span className="text-slate-400">dB</span>
@@ -525,7 +581,7 @@ export const App: React.FC = () => {
                           step={0.1}
                           value={band.gain}
                           onChange={(e) => {
-                            setActiveProfileName('Tùy chỉnh Live');
+                            setActiveProfileName(tr(lang, 'Tùy chỉnh Live', 'Live Custom'));
                             ja11Engine.updateBandLive(idx, { gain: Number(e.target.value) });
                           }}
                           className="w-16 px-1 py-0.5 rounded bg-slate-950 border border-slate-800 text-right font-mono text-[11px] text-slate-100"
@@ -538,14 +594,13 @@ export const App: React.FC = () => {
                         step={0.1}
                         value={band.gain}
                         onChange={(e) => {
-                          setActiveProfileName('Tùy chỉnh Live');
+                          setActiveProfileName(tr(lang, 'Tùy chỉnh Live', 'Live Custom'));
                           ja11Engine.updateBandLive(idx, { gain: Number(e.target.value) });
                         }}
                         className="w-full cursor-pointer"
                       />
                     </div>
 
-                    {/* Q */}
                     <div>
                       <div className="flex items-center justify-between text-[10px]">
                         <span className="text-slate-400">Q</span>
@@ -556,7 +611,7 @@ export const App: React.FC = () => {
                           step={0.05}
                           value={band.q}
                           onChange={(e) => {
-                            setActiveProfileName('Tùy chỉnh Live');
+                            setActiveProfileName(tr(lang, 'Tùy chỉnh Live', 'Live Custom'));
                             ja11Engine.updateBandLive(idx, { q: Number(e.target.value) });
                           }}
                           className="w-16 px-1 py-0.5 rounded bg-slate-950 border border-slate-800 text-right font-mono text-[11px] text-slate-100"
@@ -569,7 +624,7 @@ export const App: React.FC = () => {
                         step={0.05}
                         value={band.q}
                         onChange={(e) => {
-                          setActiveProfileName('Tùy chỉnh Live');
+                          setActiveProfileName(tr(lang, 'Tùy chỉnh Live', 'Live Custom'));
                           ja11Engine.updateBandLive(idx, { q: Number(e.target.value) });
                         }}
                         className="w-full cursor-pointer"
@@ -581,18 +636,18 @@ export const App: React.FC = () => {
             </div>
 
             {/* Integrated Sine Sweep Ear Calibrator */}
-            <SineSweepPanel onActiveFreqChange={setActiveSweepHz} />
+            <SineSweepPanel lang={lang} onActiveFreqChange={setActiveSweepHz} />
 
-            {/* Live Status Line */}
             <div className="hidden xl:flex items-center gap-2 px-1 text-[11px] text-slate-400">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
               <span className="truncate">{effectiveState.lastMessage}</span>
             </div>
           </div>
 
-          {/* RIGHT PROFILE BROWSER (xl:col-span-5 -> Independently scrollable side-by-side with Graph!) */}
+          {/* RIGHT PROFILE BROWSER (xl:col-span-5) */}
           <div className="xl:col-span-5">
             <PresetVaultAndCloud
+              lang={lang}
               currentLivePeq={effectiveState.livePeq}
               activeProfileName={activeProfileName}
               isSyncing={effectiveState.isSyncing}

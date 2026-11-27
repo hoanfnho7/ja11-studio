@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 
+import com.ja11studio.app.core.I18n;
 import com.ja11studio.app.core.Ja11Protocol;
 import com.ja11studio.app.core.Ja11Protocol.ParsedReport;
 import com.ja11studio.app.core.PeqModels.HardwareState;
@@ -292,10 +293,13 @@ public final class Ja11UsbController {
         } else {
             synchronized (stateLock) {
                 hwState.syncing = false;
-                hwState.statusMessage = "Bạn đã từ chối quyền USB cho JA11. Bấm Kết nối để thử lại.";
+                hwState.statusMessage = I18n.tr(
+                        "Bạn đã từ chối quyền USB cho JA11. Bấm Kết nối để thử lại.",
+                        "USB permission denied for JA11. Tap Connect to try again."
+                );
             }
             emitState();
-            emitToast("Chưa cấp quyền truy cập USB cho FiiO JA11.");
+            emitToast(I18n.tr("Chưa cấp quyền truy cập USB cho FiiO JA11.", "USB permission not granted for FiiO JA11."));
         }
     }
 
@@ -320,21 +324,24 @@ public final class Ja11UsbController {
             UsbDevice dev = findJa11Device();
             if (dev == null) {
                 if (!silentAuto) {
-                    logUsb("Không tìm thấy thiết bị USB VID=0x2972 trong UsbManager.");
+                    logUsb("No USB device VID=0x2972 found in UsbManager.");
                     synchronized (stateLock) {
                         hwState.connected = false;
                         hwState.syncing = false;
-                        hwState.statusMessage = "Chưa thấy JA11 ở cổng USB-C (kiểm tra đầu cắm & bật OTG nếu dùng Oppo/Vivo/Realme).";
+                        hwState.statusMessage = I18n.tr(
+                                "Chưa thấy JA11 ở cổng USB-C (kiểm tra đầu cắm & bật OTG nếu dùng Oppo/Vivo/Realme).",
+                                "No JA11 detected on USB-C (check connection & enable OTG on Oppo/Vivo/Realme)."
+                        );
                     }
                     emitState();
-                    emitToast("Chưa phát hiện FiiO JA11 ở cổng USB-C!");
+                    emitToast(I18n.tr("Chưa phát hiện FiiO JA11 ở cổng USB-C!", "FiiO JA11 not detected on USB-C!"));
                 }
                 return;
             }
 
             if (!usbManager.hasPermission(dev)) {
                 if (silentAuto && !expectingUsbReboot) {
-                    logUsb("Phát hiện JA11 cắm sẵn (chưa có quyền) -> xin quyền USB...");
+                    logUsb("JA11 detected without permission -> requesting USB permission...");
                 }
                 requestUsbPermissionSafe(dev);
                 return;
@@ -349,7 +356,10 @@ public final class Ja11UsbController {
             waitingForPermission = true;
             synchronized (stateLock) {
                 hwState.syncing = true;
-                hwState.statusMessage = "Đang chờ bạn bấm Cho phép truy cập USB JA11...";
+                hwState.statusMessage = I18n.tr(
+                        "Đang chờ bạn bấm Cho phép truy cập USB JA11...",
+                        "Waiting for USB permission confirmation..."
+                );
             }
             emitState();
 
@@ -360,17 +370,17 @@ public final class Ja11UsbController {
                 flags |= PendingIntent.FLAG_MUTABLE;
             }
             PendingIntent pi = PendingIntent.getBroadcast(appContext, 0, permIntent, flags);
-            logUsb("Gọi UsbManager.requestPermission cho PID=0x" + Integer.toHexString(dev.getProductId()));
+            logUsb("Calling UsbManager.requestPermission for PID=0x" + Integer.toHexString(dev.getProductId()));
             usbManager.requestPermission(dev, pi);
         } catch (Exception e) {
             waitingForPermission = false;
-            logUsb("Lỗi requestPermission: " + e.getMessage());
+            logUsb("requestPermission error: " + e.getMessage());
             synchronized (stateLock) {
                 hwState.syncing = false;
-                hwState.statusMessage = "Lỗi xin quyền USB: " + e.getMessage();
+                hwState.statusMessage = I18n.tr("Lỗi xin quyền USB: ", "USB permission error: ") + e.getMessage();
             }
             emitState();
-            emitToast("Lỗi xin quyền USB: " + e.getMessage());
+            emitToast(I18n.tr("Lỗi xin quyền USB: ", "USB permission error: ") + e.getMessage());
         }
     }
 
@@ -392,7 +402,10 @@ public final class Ja11UsbController {
         closeSessionInternal();
         synchronized (stateLock) {
             hwState.syncing = true;
-            hwState.statusMessage = "Đang dò cổng DSP HID trên FiiO JA11...";
+            hwState.statusMessage = I18n.tr(
+                    "Đang dò cổng DSP HID trên FiiO JA11...",
+                    "Probing DSP HID interface on FiiO JA11..."
+            );
         }
         emitState();
 
@@ -434,10 +447,13 @@ public final class Ja11UsbController {
             synchronized (stateLock) {
                 hwState.connected = false;
                 hwState.syncing = false;
-                hwState.statusMessage = "JA11 chưa có cổng điều khiển HID (cần Firmware hỗ trợ PEQ).";
+                hwState.statusMessage = I18n.tr(
+                        "JA11 chưa có cổng điều khiển HID (cần Firmware hỗ trợ PEQ).",
+                        "No HID control interface found on JA11 (PEQ firmware required)."
+                );
             }
             emitState();
-            emitToast("Không tìm thấy giao diện HID trên JA11.");
+            emitToast(I18n.tr("Không tìm thấy giao diện HID trên JA11.", "No HID interface found on JA11."));
             return;
         }
 
@@ -450,14 +466,17 @@ public final class Ja11UsbController {
 
         UsbDeviceConnection conn = usbManager.openDevice(dev);
         if (conn == null) {
-            logUsb("usbManager.openDevice() trả về null!");
+            logUsb("usbManager.openDevice() returned null!");
             synchronized (stateLock) {
                 hwState.connected = false;
                 hwState.syncing = false;
-                hwState.statusMessage = "Không thể mở cổng USB-C (hãy rút ra cắm lại JA11).";
+                hwState.statusMessage = I18n.tr(
+                        "Không thể mở cổng USB-C (hãy rút ra cắm lại JA11).",
+                        "Failed to open USB-C device (try unplugging and re-plugging JA11)."
+                );
             }
             emitState();
-            emitToast("Không mở được kết nối USB-C tới JA11.");
+            emitToast(I18n.tr("Không mở được kết nối USB-C tới JA11.", "Could not open USB-C connection to JA11."));
             return;
         }
 
@@ -555,10 +574,13 @@ public final class Ja11UsbController {
                 synchronized (stateLock) {
                     hwState.connected = false;
                     hwState.syncing = false;
-                    hwState.statusMessage = "JA11 đang bị ứng dụng nhạc khác chiếm độc quyền USB (hãy tắt Exclusive USB Audio).";
+                    hwState.statusMessage = I18n.tr(
+                            "JA11 đang bị ứng dụng nhạc khác chiếm độc quyền USB (hãy tắt Exclusive USB Audio).",
+                            "JA11 is locked by another music app (disable Exclusive USB Audio)."
+                    );
                 }
                 emitState();
-                emitToast("Không chiếm được kênh HID (kiểm tra Exclusive USB Audio).");
+                emitToast(I18n.tr("Không chiếm được kênh HID (kiểm tra Exclusive USB Audio).", "Could not claim HID interface (check Exclusive USB Audio)."));
                 return;
             }
         }
@@ -573,7 +595,10 @@ public final class Ja11UsbController {
             hwState.connected = true;
             hwState.productName = prodName;
             hwState.activeHidInfo = chosenDesc;
-            hwState.statusMessage = "Đã kết nối " + prodName + " — đang đồng bộ thông số DSP...";
+            hwState.statusMessage = I18n.tr(
+                    "Đã kết nối " + prodName + " — đang đồng bộ thông số DSP...",
+                    "Connected to " + prodName + " — syncing DSP telemetry..."
+            );
         }
         emitState();
 
@@ -583,12 +608,15 @@ public final class Ja11UsbController {
             synchronized (stateLock) {
                 savedSnapshot = livePeq;
                 hwState.syncing = false;
-                hwState.statusMessage = "Đã ghi cứng Flash ROM & tự động kết nối lại thành công!";
+                hwState.statusMessage = I18n.tr(
+                        "Đã ghi cứng Flash ROM & tự động kết nối lại thành công!",
+                        "Flash ROM committed & auto-reconnected!"
+                );
             }
             emitState();
-            emitToast("Đã lưu cứng vào chip JA11 thành công!");
+            emitToast(I18n.tr("Đã lưu cứng vào chip JA11 thành công!", "Saved permanently to JA11 Flash ROM!"));
         } else {
-            emitToast("Đã kết nối " + prodName + " (" + chosenDesc + ")!");
+            emitToast(I18n.tr("Đã kết nối " + prodName + " (" + chosenDesc + ")!", "Connected to " + prodName + " (" + chosenDesc + ")!"));
         }
     }
 
@@ -801,11 +829,14 @@ public final class Ja11UsbController {
                 if (hwState.eqPreset >= 0 && hwState.eqPreset < Ja11Protocol.EQ_PRESET_NAMES.length && hwState.eqPreset != 3) {
                     activeProfileLabel = Ja11Protocol.EQ_PRESET_NAMES[hwState.eqPreset];
                 } else {
-                    activeProfileLabel = "User 1 (Trong Chip)";
+                    activeProfileLabel = I18n.tr("User 1 (Trong Chip)", "User 1 (On Chip)");
                 }
             }
             hwState.syncing = false;
-            hwState.statusMessage = "DSP Online • Kéo đồ thị hoặc chạm Profile để nghe Live tức thì!";
+            hwState.statusMessage = I18n.tr(
+                    "DSP Online • Kéo đồ thị hoặc chạm Profile để nghe Live tức thì!",
+                    "DSP Online • Drag graph nodes or tap any Profile for live RAM preview!"
+            );
         }
         emitState();
     }
@@ -843,10 +874,10 @@ public final class Ja11UsbController {
                 hwState.connected = false;
                 hwState.syncing = false;
                 hwState.activeHidInfo = "--";
-                hwState.statusMessage = "Đã ngắt kết nối JA11.";
+                hwState.statusMessage = I18n.tr("Đã ngắt kết nối JA11.", "Disconnected from JA11.");
             }
             emitState();
-            emitToast("Đã ngắt kết nối USB JA11.");
+            emitToast(I18n.tr("Đã ngắt kết nối USB JA11.", "Disconnected USB JA11."));
         });
     }
 
@@ -863,8 +894,11 @@ public final class Ja11UsbController {
                 hwState.syncing = false;
                 hwState.activeHidInfo = "--";
                 hwState.statusMessage = rebooting
-                        ? "Chip JA11 đang chớp khởi động lại (~1s) để khóa Flash — đang tự kết nối lại..."
-                        : "Đã rút cáp USB JA11.";
+                        ? I18n.tr(
+                                "Chip JA11 đang chớp khởi động lại (~1s) để khóa Flash — đang tự kết nối lại...",
+                                "JA11 is briefly rebooting (~1s) to lock Flash — auto-reconnecting..."
+                        )
+                        : I18n.tr("Đã rút cáp USB JA11.", "JA11 USB-C unplugged.");
             }
             emitState();
             if (rebooting) {
@@ -888,7 +922,7 @@ public final class Ja11UsbController {
         synchronized (stateLock) {
             boolean wasNonUser = hwState.eqPreset != 3;
             livePeq = livePeq.withBand(bandIdx, nextBand);
-            activeProfileLabel = "Tùy chỉnh Live";
+            activeProfileLabel = I18n.tr("Tùy chỉnh Live", "Live Custom");
             connected = hwState.connected;
             if (connected) {
                 if (wasNonUser) {
@@ -952,14 +986,23 @@ public final class Ja11UsbController {
                 } else {
                     dirtyMasterGain = null;
                 }
-                hwState.statusMessage = "Đang nạp \"" + activeProfileLabel + "\" xuống RAM JA11...";
+                hwState.statusMessage = I18n.tr(
+                        "Đang nạp \"" + activeProfileLabel + "\" xuống RAM JA11...",
+                        "Loading \"" + activeProfileLabel + "\" to JA11 RAM..."
+                );
             } else {
-                hwState.statusMessage = "Đã nạp \"" + activeProfileLabel + "\" (cắm JA11 để nghe Live).";
+                hwState.statusMessage = I18n.tr(
+                        "Đã nạp \"" + activeProfileLabel + "\" (cắm JA11 để nghe Live).",
+                        "Loaded \"" + activeProfileLabel + "\" (plug in JA11 for live audio)."
+                );
             }
         }
         emitState();
         if (connected) {
-            scheduleLivePump("Đang nghe Live trên RAM: " + profileName);
+            scheduleLivePump(I18n.tr(
+                    "Đang nghe Live trên RAM: " + profileName,
+                    "Live RAM preview active: " + profileName
+            ));
         }
     }
 
@@ -1077,12 +1120,18 @@ public final class Ja11UsbController {
             if (code != 3) activeProfileLabel = modeName;
             if (!hwState.connected) {
                 if (code == 4) livePeq = PeqSnapshot.flatNeutral();
-                hwState.statusMessage = "Đã chọn chế độ " + modeName + " (cắm JA11 để áp dụng phần cứng).";
+                hwState.statusMessage = I18n.tr(
+                        "Đã chọn chế độ " + modeName + " (cắm JA11 để áp dụng phần cứng).",
+                        "Selected " + modeName + " (connect JA11 to apply)."
+                );
                 emitState();
                 return;
             }
             hwState.syncing = true;
-            hwState.statusMessage = "Đang chuyển JA11 sang \"" + modeName + "\" & đọc đáp tuyến...";
+            hwState.statusMessage = I18n.tr(
+                    "Đang chuyển JA11 sang \"" + modeName + "\" & đọc đáp tuyến...",
+                    "Switching JA11 to \"" + modeName + "\" & syncing curve..."
+            );
         }
         emitState();
 
@@ -1101,8 +1150,11 @@ public final class Ja11UsbController {
             synchronized (stateLock) {
                 hwState.syncing = false;
                 hwState.statusMessage = code == 4
-                        ? "Đã tắt EQ (Hardware Bypass phẳng 0 dB)."
-                        : ("Đã chuyển sang \"" + modeName + "\" & đồng bộ đồ thị từ JA11!");
+                        ? I18n.tr("Đã tắt EQ (Hardware Bypass phẳng 0 dB).", "EQ Off (Flat 0 dB Hardware Bypass).")
+                        : I18n.tr(
+                                "Đã chuyển sang \"" + modeName + "\" & đồng bộ đồ thị từ JA11!",
+                                "Switched to \"" + modeName + "\" & synced curve from JA11!"
+                        );
             }
             emitState();
         });
@@ -1117,10 +1169,10 @@ public final class Ja11UsbController {
         }
         if (cur == 4) {
             setEqModeAsync(restore);
-            emitToast("EQ BẬT (" + Ja11Protocol.EQ_PRESET_NAMES[restore] + ")");
+            emitToast(I18n.tr("EQ BẬT (", "EQ ON (") + Ja11Protocol.EQ_PRESET_NAMES[restore] + ")");
         } else {
             setEqModeAsync(4);
-            emitToast("EQ TẮT (So sánh A/B phẳng 0 dB)");
+            emitToast(I18n.tr("EQ TẮT (So sánh A/B phẳng 0 dB)", "EQ OFF (Flat 0 dB A/B Bypass)"));
         }
     }
 
@@ -1137,17 +1189,17 @@ public final class Ja11UsbController {
         }
         if (origPreset != null && origPreset != 3) {
             setEqModeAsync(origPreset);
-            emitToast("Đã hoàn tác về chế độ gốc ban đầu!");
+            emitToast(I18n.tr("Đã hoàn tác về chế độ gốc ban đầu!", "Reverted to original chip mode!"));
             return;
         }
-        applyProfileLive(snap, "Cấu hình gốc trong Chip");
-        emitToast("Đã hoàn tác về cấu hình gốc trong JA11!");
+        applyProfileLive(snap, I18n.tr("Cấu hình gốc trong Chip", "Original Chip Curve"));
+        emitToast(I18n.tr("Đã hoàn tác về cấu hình gốc trong JA11!", "Reverted to original JA11 curve!"));
     }
 
     public void commitToFlashAsync() {
         usbWorker.execute(() -> {
             if (connection == null) {
-                emitToast("Chưa kết nối JA11 qua cổng USB-C!");
+                emitToast(I18n.tr("Chưa kết nối JA11 qua cổng USB-C!", "JA11 not connected via USB-C!"));
                 return;
             }
             drainDirtyQueue(null);
@@ -1158,7 +1210,10 @@ public final class Ja11UsbController {
                 activePreset = hwState.eqPreset;
                 snap = livePeq;
                 hwState.syncing = true;
-                hwState.statusMessage = "Đang ghi cứng vào bộ nhớ SPI Flash của JA11...";
+                hwState.statusMessage = I18n.tr(
+                        "Đang ghi cứng vào bộ nhớ SPI Flash của JA11...",
+                        "Committing curve to JA11 SPI Flash..."
+                );
             }
             emitState();
 
@@ -1182,8 +1237,11 @@ public final class Ja11UsbController {
                 if (hwState.connected && expectingUsbReboot) {
                     expectingUsbReboot = false;
                     hwState.syncing = false;
-                    hwState.statusMessage = "Đã lưu cứng vĩnh viễn vào bộ nhớ Flash JA11!";
-                    emitToast("Đã lưu cứng vào Flash ROM JA11!");
+                    hwState.statusMessage = I18n.tr(
+                            "Đã lưu cứng vĩnh viễn vào bộ nhớ Flash JA11!",
+                            "Saved permanently to JA11 Flash ROM!"
+                    );
+                    emitToast(I18n.tr("Đã lưu cứng vào Flash ROM JA11!", "Saved to JA11 Flash ROM!"));
                 }
             }
             emitState();
@@ -1193,13 +1251,16 @@ public final class Ja11UsbController {
     public void setInlineMicAsync(final boolean enabled) {
         usbWorker.execute(() -> {
             if (connection == null) {
-                emitToast("Hãy kết nối JA11 trước khi đổi Inline Mic.");
+                emitToast(I18n.tr("Hãy kết nối JA11 trước khi đổi Inline Mic.", "Connect JA11 before toggling Inline Mic."));
                 return;
             }
             expectingUsbReboot = true;
             synchronized (stateLock) {
                 hwState.inlineMic = enabled;
-                hwState.statusMessage = "Đang đổi Inline Mic (JA11 sẽ tự khởi động lại USB)...";
+                hwState.statusMessage = I18n.tr(
+                        "Đang đổi Inline Mic (JA11 sẽ tự khởi động lại USB)...",
+                        "Switching Inline Mic (JA11 will briefly reboot USB)..."
+                );
             }
             emitState();
             sendPacketAndWaitAckInternal(Ja11Protocol.setInlineControlPacket(enabled), 300L);
@@ -1209,13 +1270,16 @@ public final class Ja11UsbController {
     public void setUacModeAsync(final int uacCode) {
         usbWorker.execute(() -> {
             if (connection == null) {
-                emitToast("Hãy kết nối JA11 trước khi chuyển chuẩn UAC.");
+                emitToast(I18n.tr("Hãy kết nối JA11 trước khi chuyển chuẩn UAC.", "Connect JA11 before switching UAC mode."));
                 return;
             }
             expectingUsbReboot = true;
             synchronized (stateLock) {
                 hwState.uacMode = uacCode;
-                hwState.statusMessage = "Đang chuyển chuẩn UAC (JA11 sẽ tự khởi động lại USB)...";
+                hwState.statusMessage = I18n.tr(
+                        "Đang chuyển chuẩn UAC (JA11 sẽ tự khởi động lại USB)...",
+                        "Switching UAC mode (JA11 will briefly reboot USB)..."
+                );
             }
             emitState();
             sendPacketAndWaitAckInternal(Ja11Protocol.setUacModePacket(uacCode), 300L);
@@ -1229,24 +1293,30 @@ public final class Ja11UsbController {
                 dirtyMasterGain = null;
             }
             if (connection == null) {
-                applyProfileLive(PeqSnapshot.flatNeutral(), "Mặc định xuất xưởng (0 dB)");
-                emitToast("Đã đặt về mặc định phẳng 0 dB.");
+                applyProfileLive(PeqSnapshot.flatNeutral(), I18n.tr("Mặc định xuất xưởng (0 dB)", "Factory Default (0 dB)"));
+                emitToast(I18n.tr("Đã đặt về mặc định phẳng 0 dB.", "Reset to flat 0 dB default."));
                 return;
             }
             synchronized (stateLock) {
                 hwState.syncing = true;
-                hwState.statusMessage = "Đang khôi phục PEQ xuất xưởng cho JA11...";
+                hwState.statusMessage = I18n.tr(
+                        "Đang khôi phục PEQ xuất xưởng cho JA11...",
+                        "Resetting JA11 PEQ to factory flat..."
+                );
             }
             emitState();
             sendPacketAndWaitAckInternal(Ja11Protocol.encodeFactoryResetPeqPacket(), 350L);
             readEqCurveInternal();
             synchronized (stateLock) {
-                activeProfileLabel = "Mặc định xuất xưởng";
+                activeProfileLabel = I18n.tr("Mặc định xuất xưởng", "Factory Default");
                 hwState.syncing = false;
-                hwState.statusMessage = "Đã khôi phục thông số PEQ xuất xưởng trên JA11!";
+                hwState.statusMessage = I18n.tr(
+                        "Đã khôi phục thông số PEQ xuất xưởng trên JA11!",
+                        "Factory PEQ reset complete on JA11!"
+                );
             }
             emitState();
-            emitToast("Đã khôi phục gốc PEQ thành công!");
+            emitToast(I18n.tr("Đã khôi phục gốc PEQ thành công!", "Factory PEQ reset complete!"));
         });
     }
 

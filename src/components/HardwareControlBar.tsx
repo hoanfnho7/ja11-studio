@@ -1,10 +1,13 @@
 import React from 'react';
-import { Usb, Unplug, RotateCcw, Save, Smartphone, Mic, MicOff, Cpu } from 'lucide-react';
+import { Usb, Unplug, RotateCcw, Save, Smartphone, Mic, MicOff, Cpu, Languages } from 'lucide-react';
+import { Lang, tr } from '../core/i18n';
 import { EQ_PRESET_NAMES, UAC_MODE_NAMES } from '../core/ja11Protocol';
 import { EngineState } from '../core/liveSyncEngine';
 import { isRunningInsideAndroidApk } from '../transports/androidUsbTransport';
 
 interface Props {
+  lang: Lang;
+  onToggleLang: () => void;
   engineState: EngineState;
   onConnect: () => void;
   onDisconnect: () => void;
@@ -15,13 +18,9 @@ interface Props {
   onChangeUacMode: (mode: number) => void;
 }
 
-const MODE_SHORT_VI = ['Vocal', 'Classic', 'Bass', 'User 1', 'Tắt EQ'];
-
-/**
- * Non-wrapping Pro Studio Top Bar optimized for 1920x1080 (16:9) and responsive desktop screens.
- * Never breaks layout when JA11 connects or when RAM/Flash action buttons appear!
- */
 export const HardwareControlBar: React.FC<Props> = ({
+  lang,
+  onToggleLang,
   engineState,
   onConnect,
   onDisconnect,
@@ -32,10 +31,14 @@ export const HardwareControlBar: React.FC<Props> = ({
   onChangeUacMode,
 }) => {
   const { hardware, hasUnsavedRamChanges, isSyncing } = engineState;
+  const modeLabels =
+    lang === 'vi'
+      ? ['Vocal', 'Classic', 'Bass', 'User 1', 'Tắt EQ']
+      : ['Vocal', 'Classic', 'Bass', 'User 1', 'EQ Off'];
 
   return (
     <header className="space-y-2">
-      {/* Row 1: Locked Single-Row Studio Header (zero wrapping/overflow on 1280px..1920px!) */}
+      {/* Row 1: Locked Single-Row Studio Header */}
       <div className="bg-slate-900/95 border border-slate-800 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-3">
         {/* Left: Brand + Device Telemetry Pill */}
         <div className="flex items-center gap-2.5 min-w-0">
@@ -68,12 +71,14 @@ export const HardwareControlBar: React.FC<Props> = ({
                   : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
               }`}
             >
-              {hasUnsavedRamChanges ? '⚡ RAM Live (Chưa lưu Flash)' : '✓ Khớp Flash'}
+              {hasUnsavedRamChanges
+                ? tr(lang, '⚡ RAM Live (Chưa lưu Flash)', '⚡ Live RAM (Unsaved)')
+                : tr(lang, '✓ Khớp Flash', '✓ Synced Flash')}
             </span>
           )}
         </div>
 
-        {/* Center (16:9 Widescreen >= 1280px): 5 Hardware Modes right inside the Top Bar */}
+        {/* Center (>= 1280px): 5 Hardware Modes */}
         {hardware.connected && (
           <div className="hidden xl:flex items-center gap-1 bg-slate-950/90 p-1 rounded-lg border border-slate-800 shrink-0">
             {EQ_PRESET_NAMES.map((name, idx) => {
@@ -89,14 +94,14 @@ export const HardwareControlBar: React.FC<Props> = ({
                       : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
-                  {MODE_SHORT_VI[idx] ?? name}
+                  {modeLabels[idx] ?? name}
                 </button>
               );
             })}
           </div>
         )}
 
-        {/* Right: Hardware I/O Toggles + Revert/Save + APK + Connect/Disconnect */}
+        {/* Right: Hardware I/O + Revert/Save + Lang + APK + Connect/Disconnect */}
         <div className="flex items-center gap-1.5 shrink-0">
           {hardware.connected && (
             <>
@@ -108,7 +113,11 @@ export const HardwareControlBar: React.FC<Props> = ({
                     ? 'bg-cyan-500/10 border-cyan-500/35 text-cyan-300'
                     : 'bg-slate-800 border-slate-700 text-slate-400'
                 }`}
-                title="Bật/Tắt Inline Mic 3.5mm CTIA (tắt để nhận DAC thuần)"
+                title={tr(
+                  lang,
+                  'Bật/Tắt Inline Mic 3.5mm CTIA (tắt để nhận DAC thuần)',
+                  'Toggle 3.5mm CTIA Inline Mic (disable for pure DAC mode)',
+                )}
               >
                 {hardware.inlineControl ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
                 <span>Mic</span>
@@ -118,7 +127,7 @@ export const HardwareControlBar: React.FC<Props> = ({
                 onClick={() => onChangeUacMode(hardware.uacMode === 1 ? 0 : 1)}
                 disabled={isSyncing}
                 className="hidden sm:inline-flex items-center gap-1 px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-white text-[11px] font-mono whitespace-nowrap cursor-pointer disabled:opacity-40"
-                title="Chuyển đổi chuẩn USB Audio Class 1.0 / 2.0"
+                title={tr(lang, 'Chuyển chuẩn USB Audio Class 1.0 / 2.0', 'Switch USB Audio Class 1.0 / 2.0')}
               >
                 <Cpu className="w-3.5 h-3.5 text-slate-400" />
                 <span>{UAC_MODE_NAMES[hardware.uacMode] ?? 'UAC 2.0'}</span>
@@ -128,10 +137,10 @@ export const HardwareControlBar: React.FC<Props> = ({
                 onClick={onRevert}
                 disabled={isSyncing || !hasUnsavedRamChanges}
                 className="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 disabled:opacity-35 transition inline-flex items-center gap-1 whitespace-nowrap cursor-pointer"
-                title="Trả âm thanh về nguyên trạng cấu hình gốc lúc mới cắm"
+                title={tr(lang, 'Trả âm thanh về cấu hình gốc lúc mới cắm', 'Revert to original hardware snapshot')}
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Hoàn tác</span>
+                <span className="hidden md:inline">{tr(lang, 'Hoàn tác', 'Revert')}</span>
               </button>
 
               {hardware.eqPreset === 3 && (
@@ -139,25 +148,39 @@ export const HardwareControlBar: React.FC<Props> = ({
                   onClick={onSaveToFlash}
                   disabled={isSyncing}
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 disabled:opacity-50 transition inline-flex items-center gap-1 whitespace-nowrap cursor-pointer shadow-sm"
-                  title="Ghi cứng User 1 vào Flash ROM JA11 (chip chớp khởi động lại ~1s)"
+                  title={tr(
+                    lang,
+                    'Ghi cứng User 1 vào Flash ROM JA11 (chip chớp khởi động lại ~1s)',
+                    'Commit User 1 permanently to JA11 SPI Flash ROM (~1s USB restart)',
+                  )}
                 >
                   <Save className="w-3.5 h-3.5" />
-                  <span>Lưu Flash</span>
+                  <span>{tr(lang, 'Lưu Flash', 'Save Flash')}</span>
                 </button>
               )}
             </>
           )}
 
+          {/* Instant Language Toggle EN / VI */}
+          <button
+            onClick={onToggleLang}
+            className="px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-mono font-semibold inline-flex items-center gap-1 whitespace-nowrap cursor-pointer transition"
+            title={tr(lang, 'Switch to English', 'Chuyển sang Tiếng Việt')}
+          >
+            <Languages className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{lang === 'vi' ? 'VI' : 'EN'}</span>
+          </button>
+
           {!isRunningInsideAndroidApk() && (
             <a
-              href="https://github.com/hoanfnho7/ja11-studio/releases/latest/download/JA11-Studio-v3.1.apk"
+              href="https://github.com/hoanfnho7/ja11-studio/releases/latest/download/JA11-Studio-v3.2.apk"
               target="_blank"
               rel="noreferrer"
-              title="Tải App Android Native v3.1 (.APK)"
+              title={tr(lang, 'Tải App Android Native v3.2 (.APK)', 'Download Native Android App v3.2 (.APK)')}
               className="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-cyan-500/35 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 transition inline-flex items-center gap-1 whitespace-nowrap"
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span className="hidden 2xl:inline">APK v3.1</span>
+              <span className="hidden 2xl:inline">APK v3.2</span>
             </a>
           )}
 
@@ -167,13 +190,13 @@ export const HardwareControlBar: React.FC<Props> = ({
               className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer shadow-sm"
             >
               <Usb className="w-3.5 h-3.5" />
-              <span>Kết nối JA11</span>
+              <span>{tr(lang, 'Kết nối JA11', 'Connect JA11')}</span>
             </button>
           ) : (
             <button
               onClick={onDisconnect}
               className="p-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-rose-300 hover:border-rose-500/40 transition cursor-pointer"
-              title="Ngắt kết nối USB"
+              title={tr(lang, 'Ngắt kết nối USB', 'Disconnect USB')}
             >
               <Unplug className="w-4 h-4" />
             </button>
@@ -185,7 +208,7 @@ export const HardwareControlBar: React.FC<Props> = ({
       {hardware.connected && (
         <div className="flex xl:hidden flex-wrap items-center justify-between gap-2 bg-slate-900/75 border border-slate-800 rounded-xl px-3 py-2 text-xs">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-slate-400 font-medium">Chế độ chip:</span>
+            <span className="text-slate-400 font-medium">{tr(lang, 'Chế độ chip:', 'Hardware EQ:')}</span>
             {EQ_PRESET_NAMES.map((name, idx) => {
               const active = hardware.eqPreset === idx;
               return (
@@ -199,7 +222,7 @@ export const HardwareControlBar: React.FC<Props> = ({
                       : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'
                   }`}
                 >
-                  {MODE_SHORT_VI[idx] ?? name}
+                  {modeLabels[idx] ?? name}
                 </button>
               );
             })}

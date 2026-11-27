@@ -278,8 +278,14 @@ public final class PresetRepository {
                         saveCachedCloudProfiles(collected);
                     }
                     final String notice = !collected.isEmpty()
-                            ? ("Tìm thấy " + collected.size() + " profile khớp \"" + term + "\" trên FiiO Hand-Picked!")
-                            : ("Không có profile nào khớp \"" + term + "\" (" + (ja11Only ? "thử chọn Mọi DAC FiiO" : "thử từ khóa khác") + ").");
+                            ? I18n.tr(
+                                    "Tìm thấy " + collected.size() + " profile khớp \"" + term + "\" trên FiiO Hand-Picked!",
+                                    "Found " + collected.size() + " matching profiles for \"" + term + "\" on FiiO Hand-Picked!"
+                            )
+                            : I18n.tr(
+                                    "Không có profile nào khớp \"" + term + "\" (" + (ja11Only ? "thử chọn Mọi DAC FiiO" : "thử từ khóa khác") + ").",
+                                    "No profiles matched \"" + term + "\" (" + (ja11Only ? "try All FiiO DACs" : "try another keyword") + ")."
+                            );
                     mainHandler.post(() -> callback.onResult(collected, collected.size(), notice));
                     return;
                 }
@@ -304,11 +310,15 @@ public final class PresetRepository {
                 if (!list.isEmpty()) {
                     if (pageNumber == 1) saveCachedCloudProfiles(list);
                     final int totalFinal = Math.max(total, list.size());
-                    final String notice = "Trang " + pageNumber + " • Tổng " + totalFinal + " cấu hình trực tiếp từ FiiO Cloud!";
+                    final String notice = I18n.tr(
+                            "Trang " + pageNumber + " • Tổng " + totalFinal + " cấu hình trực tiếp từ FiiO Cloud!",
+                            "Page " + pageNumber + " • " + totalFinal + " profiles live from FiiO Cloud!"
+                    );
                     mainHandler.post(() -> callback.onResult(list, totalFinal, notice));
                 } else {
                     List<PeqProfile> cached = loadCachedCloudProfiles();
-                    mainHandler.post(() -> callback.onResult(cached, cached.size(), "Đang hiển thị bộ nhớ đệm Offline."));
+                    mainHandler.post(() -> callback.onResult(cached, cached.size(),
+                            I18n.tr("Đang hiển thị bộ nhớ đệm Offline.", "Showing cached offline profiles.")));
                 }
             } catch (Exception e) {
                 List<PeqProfile> cached = loadCachedCloudProfiles();
@@ -322,7 +332,10 @@ public final class PresetRepository {
                         filtered.add(p);
                     }
                 }
-                final String msg = "Mạng Offline/chậm — hiển thị " + filtered.size() + " cấu hình đã lưu đệm.";
+                final String msg = I18n.tr(
+                        "Mạng Offline/chậm — hiển thị " + filtered.size() + " cấu hình đã lưu đệm.",
+                        "Offline/slow network — showing " + filtered.size() + " cached profiles."
+                );
                 mainHandler.post(() -> callback.onResult(filtered, filtered.size(), msg));
             }
         });
@@ -385,14 +398,20 @@ public final class PresetRepository {
                 }
 
                 final String notice = results.isEmpty()
-                        ? ("AutoEQ không có mẫu tai nghe \"" + term + "\" — hãy bấm nút Tìm FiiO Hand-Picked nếu tìm theo tên thể loại!")
-                        : ("Tìm thấy " + results.size() + " mẫu đo phòng lab từ Kho AutoEQ 5000+!");
+                        ? I18n.tr(
+                                "AutoEQ không có mẫu tai nghe \"" + term + "\" — hãy bấm nút Tìm FiiO Hand-Picked nếu tìm theo tên thể loại!",
+                                "No AutoEQ measurement for \"" + term + "\" — try FiiO Hand-Picked for genre presets!"
+                        )
+                        : I18n.tr(
+                                "Tìm thấy " + results.size() + " mẫu đo phòng lab từ Kho AutoEQ 5000+!",
+                                "Found " + results.size() + " lab-measured presets from AutoEQ 5000+!"
+                        );
                 mainHandler.post(() -> callback.onResult(results, results.size(), notice));
             } catch (Exception e) {
                 mainHandler.post(() -> callback.onResult(
                         new ArrayList<>(),
                         0,
-                        "Không tải được AutoEQ (kiểm tra kết nối Internet): " + e.getMessage()
+                        I18n.tr("Không tải được AutoEQ (kiểm tra kết nối Internet): ", "Failed to fetch AutoEQ (check internet): ") + e.getMessage()
                 ));
             }
         });

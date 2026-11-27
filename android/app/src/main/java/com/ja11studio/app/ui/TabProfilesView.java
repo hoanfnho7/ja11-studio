@@ -16,6 +16,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.ja11studio.app.core.FiioXmlCodec;
+import com.ja11studio.app.core.I18n;
 import com.ja11studio.app.core.PeqModels.HardwareState;
 import com.ja11studio.app.core.PeqModels.PeqBand;
 import com.ja11studio.app.core.PeqModels.PeqProfile;
@@ -28,7 +29,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Tab 3 (Native): Kho Profile & XML — Pinned Top Mini-PEQ Graph + Offline Vault + Async FiiO Cloud + XML Editor.
+ * Tab 3 (Native): Profiles & XML — Pinned Top Mini-PEQ Graph + Offline Vault + Async FiiO Cloud + XML Editor.
  */
 public final class TabProfilesView extends LinearLayout {
     public interface HostActions {
@@ -110,12 +111,12 @@ public final class TabProfilesView extends LinearLayout {
         pHdr.setOrientation(HORIZONTAL);
         pHdr.setGravity(Gravity.CENTER_VERTICAL);
 
-        stickyLabelTv = UiKit.label(ctx, "● Đáp tuyến Live: Custom Ear 4380Hz", 11f, UiKit.C_AMBER_TEXT, UiKit.FONT_MONO_BOLD);
+        stickyLabelTv = UiKit.label(ctx, I18n.tr("● Đáp tuyến Live: Custom Ear 4380Hz", "● Live Curve: Custom Ear 4380Hz"), 11f, UiKit.C_AMBER_TEXT, UiKit.FONT_MONO_BOLD);
         stickyLabelTv.setSingleLine(true);
         stickyLabelTv.setLayoutParams(new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         stickyPreampTv = UiKit.badge(ctx, "Pre -12.0dB", UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT);
-        toggleGraphBtn = UiKit.actionButton(ctx, "Thu gọn", UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_MUTED, Color.TRANSPARENT, 6f, 9.5f);
+        toggleGraphBtn = UiKit.actionButton(ctx, I18n.tr("Thu gọn", "Hide"), UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_MUTED, Color.TRANSPARENT, 6f, 9.5f);
         toggleGraphBtn.setMinHeight(UiKit.dp(ctx, 26f));
         toggleGraphBtn.setPadding(UiKit.dp(ctx, 8f), UiKit.dp(ctx, 2f), UiKit.dp(ctx, 8f), UiKit.dp(ctx, 2f));
         LayoutParams tgLp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -124,7 +125,7 @@ public final class TabProfilesView extends LinearLayout {
         toggleGraphBtn.setOnClickListener(v -> {
             showMiniGraph = !showMiniGraph;
             miniGraph.setVisibility(showMiniGraph ? VISIBLE : GONE);
-            toggleGraphBtn.setText(showMiniGraph ? "Thu gọn" : "Hiện đồ thị");
+            toggleGraphBtn.setText(showMiniGraph ? I18n.tr("Thu gọn", "Hide") : I18n.tr("Hiện đồ thị", "Show Graph"));
         });
 
         pHdr.addView(stickyLabelTv);
@@ -154,7 +155,7 @@ public final class TabProfilesView extends LinearLayout {
         segRow.setPadding(sp4, sp4, sp4, sp4);
         segRow.setBackground(UiKit.roundedBox(ctx, UiKit.C_SURFACE_LOW, 10f, UiKit.C_BORDER, 0.8f));
 
-        tabOfflineBtn = UiKit.actionButton(ctx, "💾 Offline & FiiO XML", UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT, Color.TRANSPARENT, 8f, 11f);
+        tabOfflineBtn = UiKit.actionButton(ctx, I18n.tr("💾 Offline & FiiO XML", "💾 Offline & XML"), UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT, Color.TRANSPARENT, 8f, 11f);
         tabOfflineBtn.setLayoutParams(new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         tabOfflineBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
@@ -175,7 +176,7 @@ public final class TabProfilesView extends LinearLayout {
         // Import / Export XML Buttons
         LinearLayout ioRow = new LinearLayout(ctx);
         ioRow.setOrientation(HORIZONTAL);
-        TextView importBtn = UiKit.actionButton(ctx, "📥 NHẬP FILE .XML", UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT, UiKit.C_BORDER, 10f, 10.5f);
+        TextView importBtn = UiKit.actionButton(ctx, I18n.tr("📥 NHẬP FILE .XML", "📥 IMPORT .XML"), UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT, UiKit.C_BORDER, 10f, 10.5f);
         LayoutParams imLp = new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         imLp.rightMargin = UiKit.dp(ctx, 6f);
         importBtn.setLayoutParams(imLp);
@@ -184,12 +185,12 @@ public final class TabProfilesView extends LinearLayout {
             hostActions.onRequestImportXml();
         });
 
-        TextView exportBtn = UiKit.actionButton(ctx, "📤 XUẤT .XML HIỆN TẠI", UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT, UiKit.C_BORDER, 10f, 10.5f);
+        TextView exportBtn = UiKit.actionButton(ctx, I18n.tr("📤 XUẤT .XML HIỆN TẠI", "📤 EXPORT .XML"), UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT, UiKit.C_BORDER, 10f, 10.5f);
         exportBtn.setLayoutParams(new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         exportBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
             String name = controller.getActiveProfileLabel();
-            String xml = FiioXmlCodec.serializeFiioXml(name, "Exported from JA11 Studio Android v3.0", controller.getLivePeq());
+            String xml = FiioXmlCodec.serializeFiioXml(name, "Exported from JA11 Studio Android v3.2", controller.getLivePeq());
             String safeFile = name.replaceAll("[<>:\"/\\\\|?*]+", "_") + ".xml";
             hostActions.onExportXmlFile(safeFile, xml);
         });
@@ -202,7 +203,7 @@ public final class TabProfilesView extends LinearLayout {
         offlineSection = new LinearLayout(ctx);
         offlineSection.setOrientation(VERTICAL);
 
-        EditText offSearch = styledInput(ctx, "🔍 Lọc nhanh tên profile trong kho Offline...");
+        EditText offSearch = styledInput(ctx, I18n.tr("🔍 Lọc nhanh tên profile trong kho Offline...", "🔍 Filter offline vault profiles..."));
         offSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
@@ -215,7 +216,15 @@ public final class TabProfilesView extends LinearLayout {
         offlineSection.addView(offSearch, UiKit.matchWrapBottomMargin(ctx, 8f));
 
         LinearLayout saveCard = UiKit.cardContainer(ctx, 10f);
-        TextView saveToggle = UiKit.actionButton(ctx, "＋ Lưu Cấu Hình Đang Chỉnh Vào Kho Offline ▾", UiKit.C_SURFACE_CONTAINER, UiKit.C_AMBER_TEXT, Color.TRANSPARENT, 8f, 11f);
+        TextView saveToggle = UiKit.actionButton(
+                ctx,
+                I18n.tr("＋ Lưu Cấu Hình Đang Chỉnh Vào Kho Offline ▾", "＋ Save Current Curve to Offline Vault ▾"),
+                UiKit.C_SURFACE_CONTAINER,
+                UiKit.C_AMBER_TEXT,
+                Color.TRANSPARENT,
+                8f,
+                11f
+        );
         saveToggle.setOnClickListener(v -> {
             showSaveDrawer = !showSaveDrawer;
             saveDrawerBody.setVisibility(showSaveDrawer ? VISIBLE : GONE);
@@ -227,14 +236,14 @@ public final class TabProfilesView extends LinearLayout {
         saveDrawerBody.setVisibility(GONE);
         saveDrawerBody.setPadding(0, UiKit.dp(ctx, 8f), 0, 0);
 
-        newNameEt = styledInput(ctx, "Tên Profile (VD: FiiO JD1 - Cắt chói 4.38kHz)");
-        newNoteEt = styledInput(ctx, "Ghi chú âm sắc (tùy chọn)");
-        TextView commitVaultBtn = UiKit.actionButton(ctx, "📦 CẤT VÀO KHO OFFLINE", UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 8f, 11f);
+        newNameEt = styledInput(ctx, I18n.tr("Tên Profile (VD: FiiO JD1 - Cắt chói 4.38kHz)", "Profile Name (e.g. FiiO JD1 - 4.38kHz Cut)"));
+        newNoteEt = styledInput(ctx, I18n.tr("Ghi chú âm sắc (tùy chọn)", "Sound notes (optional)"));
+        TextView commitVaultBtn = UiKit.actionButton(ctx, I18n.tr("📦 CẤT VÀO KHO OFFLINE", "📦 SAVE TO OFFLINE VAULT"), UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 8f, 11f);
         commitVaultBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
             String nm = newNameEt.getText().toString().trim();
             if (nm.isEmpty()) {
-                hostActions.showToast("Vui lòng nhập Tên Profile trước khi lưu!");
+                hostActions.showToast(I18n.tr("Vui lòng nhập Tên Profile trước khi lưu!", "Please enter a Profile Name first!"));
                 return;
             }
             PeqProfile created = new PeqProfile(
@@ -243,7 +252,7 @@ public final class TabProfilesView extends LinearLayout {
                     newNoteEt.getText().toString().trim(),
                     "personal",
                     "JadeAudio JA11",
-                    "Bạn",
+                    I18n.tr("Bạn", "You"),
                     controller.getLivePeq(),
                     0,
                     System.currentTimeMillis()
@@ -255,7 +264,7 @@ public final class TabProfilesView extends LinearLayout {
             showSaveDrawer = false;
             saveDrawerBody.setVisibility(GONE);
             rebuildCards();
-            hostActions.showToast("Đã lưu \"" + nm + "\" vào Kho Offline!");
+            hostActions.showToast(I18n.tr("Đã lưu \"" + nm + "\" vào Kho Offline!", "Saved \"" + nm + "\" to Offline Vault!"));
         });
 
         saveDrawerBody.addView(newNameEt, UiKit.matchWrapBottomMargin(ctx, 6f));
@@ -279,7 +288,7 @@ public final class TabProfilesView extends LinearLayout {
             triggerFiioFetch(1);
         });
 
-        filterAllBtn = UiKit.actionButton(ctx, "Mọi DAC FiiO", UiKit.C_SURFACE_CONTAINER, UiKit.C_TEXT_MUTED, Color.TRANSPARENT, 7f, 10f);
+        filterAllBtn = UiKit.actionButton(ctx, I18n.tr("Mọi DAC FiiO", "All FiiO DACs"), UiKit.C_SURFACE_CONTAINER, UiKit.C_TEXT_MUTED, Color.TRANSPARENT, 7f, 10f);
         filterAllBtn.setMinHeight(UiKit.dp(ctx, 30f));
         LayoutParams faLp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         faLp.leftMargin = UiKit.dp(ctx, 6f);
@@ -294,12 +303,12 @@ public final class TabProfilesView extends LinearLayout {
         filterRow.addView(filterAllBtn);
         onlineSection.addView(filterRow, UiKit.matchWrapBottomMargin(ctx, 8f));
 
-        cloudSearchEt = styledInput(ctx, "Tìm tên profile FiiO (podcast, vocal, jd1) hoặc tai nghe...");
+        cloudSearchEt = styledInput(ctx, I18n.tr("Tìm tên profile FiiO (podcast, vocal, jd1) hoặc tai nghe...", "Search FiiO profiles (podcast, vocal, jd1) or IEMs..."));
         onlineSection.addView(cloudSearchEt, UiKit.matchWrapBottomMargin(ctx, 8f));
 
         LinearLayout searchBtns = new LinearLayout(ctx);
         searchBtns.setOrientation(HORIZONTAL);
-        TextView fiioSearchBtn = UiKit.actionButton(ctx, "🔎 TÌM FIIO HAND-PICKED", UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 8f, 10.5f);
+        TextView fiioSearchBtn = UiKit.actionButton(ctx, I18n.tr("🔎 TÌM FIIO HAND-PICKED", "🔎 FIIO HAND-PICKED"), UiKit.C_AMBER_CONTAINER, UiKit.C_ON_AMBER, Color.TRANSPARENT, 8f, 10.5f);
         LayoutParams fsLp = new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         fsLp.rightMargin = UiKit.dp(ctx, 6f);
         fiioSearchBtn.setLayoutParams(fsLp);
@@ -308,11 +317,11 @@ public final class TabProfilesView extends LinearLayout {
             triggerFiioFetch(1);
         });
 
-        TextView autoEqBtn = UiKit.actionButton(ctx, "🌐 ĐO AUTOEQ 5000+", UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT, UiKit.C_BORDER, 8f, 10.5f);
+        TextView autoEqBtn = UiKit.actionButton(ctx, I18n.tr("🌐 ĐO AUTOEQ 5000+", "🌐 AUTOEQ 5000+"), UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT, UiKit.C_BORDER, 8f, 10.5f);
         autoEqBtn.setLayoutParams(new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         autoEqBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
-            cloudNoticeTv.setText("Đang tra cứu Kho AutoEQ 5000+ mẫu tai nghe...");
+            cloudNoticeTv.setText(I18n.tr("Đang tra cứu Kho AutoEQ 5000+ mẫu tai nghe...", "Searching AutoEQ 5000+ lab database..."));
             repository.searchAutoEqAsync(cloudSearchEt.getText().toString(), (profiles, totalRows, notice) -> {
                 cloudProfiles = profiles;
                 cloudTotal = totalRows;
@@ -329,7 +338,7 @@ public final class TabProfilesView extends LinearLayout {
         LinearLayout pageRow = new LinearLayout(ctx);
         pageRow.setOrientation(HORIZONTAL);
         pageRow.setGravity(Gravity.CENTER_VERTICAL);
-        cloudNoticeTv = UiKit.label(ctx, "Kho trực tuyến FiiO Hand-Picked & AutoEQ.", 10f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
+        cloudNoticeTv = UiKit.label(ctx, I18n.tr("Kho trực tuyến FiiO Hand-Picked & AutoEQ.", "FiiO Hand-Picked & AutoEQ Online Library."), 10f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
         cloudNoticeTv.setLayoutParams(new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         prevPageBtn = UiKit.actionButton(ctx, "◀", UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_PRIMARY, Color.TRANSPARENT, 6f, 10f);
@@ -337,7 +346,7 @@ public final class TabProfilesView extends LinearLayout {
         prevPageBtn.setOnClickListener(v -> {
             if (cloudPage > 1) triggerFiioFetch(cloudPage - 1);
         });
-        pageInfoTv = UiKit.label(ctx, "Tr.1", 10f, UiKit.C_AMBER_TEXT, UiKit.FONT_MONO_BOLD);
+        pageInfoTv = UiKit.label(ctx, I18n.tr("Tr.1", "P.1"), 10f, UiKit.C_AMBER_TEXT, UiKit.FONT_MONO_BOLD);
         pageInfoTv.setPadding(UiKit.dp(ctx, 6f), 0, UiKit.dp(ctx, 6f), 0);
         nextPageBtn = UiKit.actionButton(ctx, "▶", UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_PRIMARY, Color.TRANSPARENT, 6f, 10f);
         nextPageBtn.setMinHeight(UiKit.dp(ctx, 28f));
@@ -356,8 +365,8 @@ public final class TabProfilesView extends LinearLayout {
         LinearLayout listHdr = new LinearLayout(ctx);
         listHdr.setOrientation(HORIZONTAL);
         listHdr.setGravity(Gravity.CENTER_VERTICAL);
-        TextView listTitle = UiKit.label(ctx, "Danh Sách Profile", 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
-        countBadge = UiKit.badge(ctx, "6 Cấu hình", UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT);
+        TextView listTitle = UiKit.label(ctx, I18n.tr("Danh Sách Profile", "Profile List"), 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
+        countBadge = UiKit.badge(ctx, I18n.tr("6 Cấu hình", "6 Profiles"), UiKit.C_SURFACE_HIGH, UiKit.C_CYAN_TEXT);
         LayoutParams cbLp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         cbLp.leftMargin = UiKit.dp(ctx, 6f);
         countBadge.setLayoutParams(cbLp);
@@ -365,12 +374,12 @@ public final class TabProfilesView extends LinearLayout {
         View spacer = new View(ctx);
         spacer.setLayoutParams(new LayoutParams(0, 1, 1f));
 
-        resetVaultBtn = UiKit.label(ctx, "Khôi phục mẫu gốc", 10.5f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
+        resetVaultBtn = UiKit.label(ctx, I18n.tr("Khôi phục mẫu gốc", "Restore Defaults"), 10.5f, UiKit.C_TEXT_MUTED, UiKit.FONT_MONO);
         resetVaultBtn.setOnClickListener(v -> {
             vaultProfiles = repository.resetVaultToDefaults();
             hostActions.onVaultUpdated(vaultProfiles);
             rebuildCards();
-            hostActions.showToast("Đã khôi phục 6 Profile mẫu mặc định.");
+            hostActions.showToast(I18n.tr("Đã khôi phục 6 Profile mẫu mặc định.", "Restored 6 default preset profiles."));
         });
 
         listHdr.addView(listTitle);
@@ -398,7 +407,8 @@ public final class TabProfilesView extends LinearLayout {
         String label = controller.getActiveProfileLabel();
         boolean bypassed = (hw.eqPreset == 4);
 
-        stickyLabelTv.setText("● Đáp tuyến Live: " + (bypassed ? "EQ TẮT (0 dB)" : label));
+        stickyLabelTv.setText(I18n.tr("● Đáp tuyến Live: ", "● Live Curve: ")
+                + (bypassed ? I18n.tr("EQ TẮT (0 dB)", "EQ OFF (0 dB)") : label));
         stickyPreampTv.setText(String.format(Locale.US, "Pre %+.1fdB", live.masterGain));
         miniGraph.updateState(live, saved, 3, bypassed, null);
         rebuildCards();
@@ -433,14 +443,14 @@ public final class TabProfilesView extends LinearLayout {
     }
 
     private void triggerFiioFetch(int page) {
-        cloudNoticeTv.setText("Đang kết nối máy chủ FiiO Hand-Picked...");
+        cloudNoticeTv.setText(I18n.tr("Đang kết nối máy chủ FiiO Hand-Picked...", "Connecting to FiiO Hand-Picked server..."));
         String q = cloudSearchEt.getText().toString();
         repository.fetchFiioHandPickedAsync(q, cloudJa11Only, page, (profiles, totalRows, notice) -> {
             cloudProfiles = profiles;
             cloudTotal = totalRows;
             cloudPage = page;
             cloudNoticeTv.setText(notice);
-            pageInfoTv.setText("Tr." + page);
+            pageInfoTv.setText(I18n.tr("Tr.", "P.") + page);
             rebuildCards();
         });
     }
@@ -465,12 +475,12 @@ public final class TabProfilesView extends LinearLayout {
             }
         }
 
-        countBadge.setText(list.size() + " Cấu hình");
+        countBadge.setText(list.size() + I18n.tr(" Cấu hình", " Profiles"));
 
         if (list.isEmpty()) {
             LinearLayout empty = UiKit.cardContainer(ctx, 20f);
             empty.setGravity(Gravity.CENTER);
-            empty.addView(UiKit.label(ctx, "Không tìm thấy cấu hình phù hợp.", 13f, UiKit.C_TEXT_MUTED, UiKit.FONT_SANS));
+            empty.addView(UiKit.label(ctx, I18n.tr("Không tìm thấy cấu hình phù hợp.", "No matching profiles found."), 13f, UiKit.C_TEXT_MUTED, UiKit.FONT_SANS));
             cardsContainer.addView(empty);
             return;
         }
@@ -495,8 +505,10 @@ public final class TabProfilesView extends LinearLayout {
             titleCol.setLayoutParams(new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
             TextView tTv = UiKit.label(ctx, prof.name, 14.5f, UiKit.C_TEXT_PRIMARY, UiKit.FONT_SANS_BOLD);
-            String sub = "Bởi " + prof.author + " • " + prof.deviceModel
-                    + (prof.compressedFromBands > 5 ? (" (Gộp từ " + prof.compressedFromBands + "-Band)") : "");
+            String sub = I18n.tr("Bởi ", "By ") + prof.author + " • " + prof.deviceModel
+                    + (prof.compressedFromBands > 5
+                    ? I18n.tr(" (Gộp từ " + prof.compressedFromBands + "-Band)", " (Merged from " + prof.compressedFromBands + "-Band)")
+                    : "");
             TextView sTv = UiKit.label(ctx, sub, 10f, UiKit.C_AMBER_TEXT, UiKit.FONT_MONO);
             titleCol.addView(tTv);
             titleCol.addView(sTv);
@@ -539,7 +551,9 @@ public final class TabProfilesView extends LinearLayout {
             boolean isSyncing = controller.getHardwareState().syncing;
             TextView liveBtn = UiKit.actionButton(
                     ctx,
-                    isActive ? (isSyncing ? "⏳ ĐANG GỬI..." : "✓ ĐANG ÁP DỤNG") : "⚡ NGHE THỬ LIVE (RAM)",
+                    isActive
+                            ? (isSyncing ? I18n.tr("⏳ ĐANG GỬI...", "⏳ SENDING...") : I18n.tr("✓ ĐANG ÁP DỤNG", "✓ APPLIED"))
+                            : I18n.tr("⚡ NGHE THỬ LIVE (RAM)", "⚡ LIVE PREVIEW (RAM)"),
                     isActive ? UiKit.C_AMBER_CONTAINER : UiKit.C_SURFACE_HIGH,
                     isActive ? UiKit.C_ON_AMBER : UiKit.C_TEXT_PRIMARY,
                     Color.TRANSPARENT,
@@ -556,7 +570,7 @@ public final class TabProfilesView extends LinearLayout {
             actRow.addView(liveBtn);
 
             if (onlineMode) {
-                TextView saveOffBtn = UiKit.actionButton(ctx, "＋Kho", UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT, Color.TRANSPARENT, 8f, 10.5f);
+                TextView saveOffBtn = UiKit.actionButton(ctx, I18n.tr("＋Kho", "＋Save"), UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT, Color.TRANSPARENT, 8f, 10.5f);
                 LayoutParams soLp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 soLp.rightMargin = UiKit.dp(ctx, 6f);
                 saveOffBtn.setLayoutParams(soLp);
@@ -568,7 +582,7 @@ public final class TabProfilesView extends LinearLayout {
                     );
                     vaultProfiles = repository.upsertVaultProfile(copy);
                     hostActions.onVaultUpdated(vaultProfiles);
-                    hostActions.showToast("Đã cất \"" + prof.name + "\" vào Kho Offline!");
+                    hostActions.showToast(I18n.tr("Đã cất \"" + prof.name + "\" vào Kho Offline!", "Saved \"" + prof.name + "\" to Offline Vault!"));
                 });
                 actRow.addView(saveOffBtn);
             }
@@ -590,7 +604,7 @@ public final class TabProfilesView extends LinearLayout {
                     vaultProfiles = repository.deleteVaultProfile(prof.id);
                     hostActions.onVaultUpdated(vaultProfiles);
                     rebuildCards();
-                    hostActions.showToast("Đã xóa \"" + prof.name + "\".");
+                    hostActions.showToast(I18n.tr("Đã xóa \"" + prof.name + "\".", "Deleted \"" + prof.name + "\"."));
                 });
                 actRow.addView(delBtn);
             }
@@ -614,26 +628,26 @@ public final class TabProfilesView extends LinearLayout {
         xmlEt.setMaxLines(18);
 
         new AlertDialog.Builder(ctx, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                .setTitle("Mã nguồn XML: " + prof.name)
+                .setTitle(I18n.tr("Mã nguồn XML: ", "XML Source: ") + prof.name)
                 .setView(xmlEt)
-                .setPositiveButton("⚡ Nạp vào RAM", (d, w) -> {
+                .setPositiveButton(I18n.tr("⚡ Nạp vào RAM", "⚡ Load to RAM"), (d, w) -> {
                     try {
                         PeqProfile parsed = FiioXmlCodec.parseFiioXml(xmlEt.getText().toString(), prof.name);
                         controller.applyProfileLive(parsed.snapshot, parsed.name);
-                        hostActions.showToast("Đã nạp mã XML \"" + parsed.name + "\" vào RAM!");
+                        hostActions.showToast(I18n.tr("Đã nạp mã XML \"" + parsed.name + "\" vào RAM!", "Loaded XML \"" + parsed.name + "\" to RAM!"));
                     } catch (Exception e) {
-                        hostActions.showToast("Lỗi cú pháp XML: " + e.getMessage());
+                        hostActions.showToast(I18n.tr("Lỗi cú pháp XML: ", "XML syntax error: ") + e.getMessage());
                     }
                 })
-                .setNeutralButton("Xuất .XML", (d, w) -> {
+                .setNeutralButton(I18n.tr("Xuất .XML", "Export .XML"), (d, w) -> {
                     String safe = prof.name.replaceAll("[<>:\"/\\\\|?*]+", "_") + ".xml";
                     hostActions.onExportXmlFile(safe, xmlEt.getText().toString());
                 })
-                .setNegativeButton("Sao chép", (d, w) -> {
+                .setNegativeButton(I18n.tr("Sao chép", "Copy"), (d, w) -> {
                     ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
                     if (cm != null) {
                         cm.setPrimaryClip(ClipData.newPlainText("FiiO XML", xmlEt.getText().toString()));
-                        hostActions.showToast("Đã sao chép mã XML vào bộ nhớ đệm!");
+                        hostActions.showToast(I18n.tr("Đã sao chép mã XML vào bộ nhớ đệm!", "XML copied to clipboard!"));
                     }
                 })
                 .show();
