@@ -19,8 +19,8 @@ export default defineConfig({
         name: 'JA11 Studio — Live PEQ & DAC Controller',
         short_name: 'JA11 Studio',
         description: 'Offline/Online Real-time PEQ, FiiO XML Vault & Hardware Volume Controller for FiiO/JadeAudio JA11',
-        theme_color: '#121316',
-        background_color: '#121316',
+        theme_color: '#090d16',
+        background_color: '#090d16',
         display: 'standalone',
         icons: [
           {

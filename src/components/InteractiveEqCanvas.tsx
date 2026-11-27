@@ -6,18 +6,25 @@ const MIN_FREQ = 20;
 const MAX_FREQ = 20000;
 const LOG_MIN = Math.log10(MIN_FREQ);
 const LOG_MAX = Math.log10(MAX_FREQ);
-const MIN_DB = -13.5;
-const MAX_DB = 13.5;
+const MIN_DB = -14;
+const MAX_DB = 14;
+
+export const BAND_COLORS = [
+  '#38bdf8', // Band 1 - Sky
+  '#a78bfa', // Band 2 - Violet
+  '#34d399', // Band 3 - Emerald
+  '#fbbf24', // Band 4 - Amber
+  '#fb7185', // Band 5 - Rose
+] as const;
 
 interface Props {
   livePeq: PeqSnapshot;
-  savedSnapshot?: PeqSnapshot | null;
-  selectedBand?: number;
-  onSelectBand?: (index: number) => void;
-  onChangeBand?: (index: number, patch: Partial<PeqBand>) => void;
-  activeSweepHz?: number | null;
-  compact?: boolean;
-  isBypassed?: boolean;
+  savedSnapshot: PeqSnapshot | null;
+  selectedBand: number;
+  onSelectBand: (index: number) => void;
+  onChangeBand: (index: number, patch: Partial<PeqBand>) => void;
+  activeSweepHz: number | null;
+  compactDocked?: boolean;
 }
 
 function freqToX(freq: number, width: number, padL: number, padR: number): number {
@@ -49,24 +56,36 @@ function yToDb(y: number, height: number, padT: number, padB: number): number {
 
 export const InteractiveEqCanvas: React.FC<Props> = ({
   livePeq,
-  savedSnapshot = null,
-  selectedBand = 3,
+  savedSnapshot,
+  selectedBand,
   onSelectBand,
   onChangeBand,
-  activeSweepHz = null,
-  compact = false,
-  isBypassed = false,
+  activeSweepHz,
+  compactDocked = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [draggingBand, setDraggingBand] = useState<number | null>(null);
   const [sizeTick, setSizeTick] = useState(0);
 
-  const PAD = compact ? { l: 28, r: 10, t: 10, b: 18 } : { l: 34, r: 14, t: 20, b: 24 };
+  const PAD = compactDocked
+    ? { l: 34, r: 14, t: 12, b: 20 }
+    : { l: 38, r: 16, t: 18, b: 26 };
 
   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     const onResize = () => setSizeTick((n) => n + 1);
     window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(() => setSizeTick((n) => n + 1));
+      ro.observe(canvas);
+    }
+    return () => {
+      window.removeEventListener('resize', onResize);
+      ro?.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -90,66 +109,61 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
     const W = rect.width;
     const H = rect.height;
 
-    // Deep Carbon Backplate (#0d0e11)
-    ctx.fillStyle = '#0d0e11';
+    // Background
+    ctx.fillStyle = '#0b1120';
     ctx.fillRect(0, 0, W, H);
 
-    // Horizontal dB Grid Lines
-    const dbTicks = compact ? [-12, 0, 12] : [-12, -6, 0, 6, 12];
-    ctx.font = `${compact ? 9 : 10}px "JetBrains Mono", ui-monospace, monospace`;
+    // Grid dB lines
+    const dbTicks = compactDocked ? [-12, -6, 0, 6, 12] : [-12, -6, 0, 6, 12];
+    ctx.font = `${compactDocked ? 10 : 11}px ui-monospace, SFMono-Regular, Menlo, monospace`;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
 
     for (const db of dbTicks) {
       const y = dbToY(db, H, PAD.t, PAD.b);
-      ctx.strokeStyle = db === 0 ? 'rgba(255, 159, 10, 0.28)' : 'rgba(52, 53, 56, 0.45)';
-      ctx.lineWidth = db === 0 ? 1 : 0.75;
-      if (db === 0) ctx.setLineDash([3, 3]);
-      else ctx.setLineDash([]);
+      ctx.strokeStyle = db === 0 ? 'rgba(148, 163, 184, 0.35)' : 'rgba(51, 65, 85, 0.55)';
+      ctx.lineWidth = db === 0 ? 1.5 : 1;
       ctx.beginPath();
       ctx.moveTo(PAD.l, y);
       ctx.lineTo(W - PAD.r, y);
       ctx.stroke();
-      ctx.setLineDash([]);
 
-      ctx.fillStyle = db === 0 ? '#ffc688' : '#636670';
-      ctx.fillText(db === 0 ? '0' : `${db > 0 ? '+' : ''}${db}`, PAD.l - 5, y);
+      ctx.fillStyle = db === 0 ? '#cbd5e1' : '#64748b';
+      ctx.fillText(`${db > 0 ? '+' : ''}${db}`, PAD.l - 6, y);
     }
 
-    // Vertical Log Frequency Grid Lines
-    const freqTicks = compact ? [20, 100, 1000, 10000, 20000] : [20, 100, 1000, 4380, 10000, 20000];
+    // Grid Frequency lines
+    const freqTicks = [20, 50, 100, 200, 500, 1000, 2000, 4380, 8000, 16000];
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
 
     for (const f of freqTicks) {
       const x = freqToX(f, W, PAD.l, PAD.r);
-      const is4380 = f === 4380;
-      ctx.strokeStyle = is4380 ? 'rgba(0, 238, 252, 0.16)' : 'rgba(52, 53, 56, 0.35)';
-      ctx.lineWidth = 0.75;
+      const isSpecial4380 = f === 4380;
+      ctx.strokeStyle = isSpecial4380 ? 'rgba(251, 191, 36, 0.22)' : 'rgba(51, 65, 85, 0.45)';
+      ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(x, PAD.t);
       ctx.lineTo(x, H - PAD.b);
       ctx.stroke();
 
-      ctx.fillStyle = is4380 ? '#00dbe9' : '#6e717a';
-      const lbl =
-        f === 4380 ? '4.38k' : f >= 1000 ? `${f / 1000}kHz` : `${f}Hz`;
-      const clampedX = Math.max(PAD.l + 12, Math.min(W - PAD.r - 14, x));
-      ctx.fillText(lbl, clampedX, H - 3);
+      ctx.fillStyle = isSpecial4380 ? '#fbbf24' : '#64748b';
+      const label = f >= 1000 ? `${(f / 1000).toFixed(f === 4380 ? 2 : 0)}k` : `${f}`;
+      ctx.fillText(label, x, H - 3);
     }
 
     const plotW = Math.max(1, Math.floor(W - PAD.l - PAD.r));
-    const zeroY = dbToY(0, H, PAD.t, PAD.b);
+    const sampleStep = 2;
 
-    // 1. Optional Ghost Curve of Saved Hardware Snapshot
-    if (savedSnapshot && !isBypassed) {
+    // 1. Optional Ghost Curve of Saved Hardware Snapshot (before live edits)
+    if (savedSnapshot) {
       const savedCoeffs = savedSnapshot.bands.map((b) => computeBiquadCoeffs(b));
       ctx.save();
-      ctx.strokeStyle = 'rgba(218, 195, 173, 0.32)';
-      ctx.lineWidth = 1.25;
-      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 4]);
       ctx.beginPath();
-      for (let dx = 0; dx <= plotW; dx += 2) {
+      for (let dx = 0; dx <= plotW; dx += sampleStep) {
         const px = PAD.l + dx;
         const freq = xToFreq(px, W, PAD.l, PAD.r);
         let sumDb = 0;
@@ -162,107 +176,99 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
       ctx.restore();
     }
 
-    // 2. Electric Amber (#ff9f0a) Area Gradient + Main Spline Curve
+    // 2. Per-band shaded curves
     const liveCoeffs = livePeq.bands.map((b) => computeBiquadCoeffs(b));
-    const curvePoints: Array<[number, number]> = [];
-    for (let dx = 0; dx <= plotW; dx += 2) {
+    const zeroY = dbToY(0, H, PAD.t, PAD.b);
+
+    liveCoeffs.forEach((coeff, idx) => {
+      const band = livePeq.bands[idx];
+      if (Math.abs(band.gain) < 0.05 && idx !== selectedBand) return;
+
+      const color = BAND_COLORS[idx];
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(PAD.l, zeroY);
+      for (let dx = 0; dx <= plotW; dx += sampleStep * 2) {
+        const px = PAD.l + dx;
+        const freq = xToFreq(px, W, PAD.l, PAD.r);
+        const db = evaluateBiquadDb(coeff, freq);
+        ctx.lineTo(px, dbToY(db, H, PAD.t, PAD.b));
+      }
+      ctx.lineTo(PAD.l + plotW, zeroY);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.globalAlpha = idx === selectedBand ? 0.16 : 0.07;
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // 3. Composite Summed Response Curve
+    ctx.save();
+    ctx.strokeStyle = '#22d3ee';
+    ctx.lineWidth = compactDocked ? 2.3 : 2.6;
+    ctx.shadowColor = 'rgba(34, 211, 238, 0.45)';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    for (let dx = 0; dx <= plotW; dx += sampleStep) {
       const px = PAD.l + dx;
       const freq = xToFreq(px, W, PAD.l, PAD.r);
       let sumDb = 0;
-      if (!isBypassed) {
-        for (const c of liveCoeffs) sumDb += evaluateBiquadDb(c, freq);
-      }
-      curvePoints.push([px, dbToY(sumDb, H, PAD.t, PAD.b)]);
+      for (const c of liveCoeffs) sumDb += evaluateBiquadDb(c, freq);
+      const py = dbToY(sumDb, H, PAD.t, PAD.b);
+      if (dx === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
     }
+    ctx.stroke();
+    ctx.restore();
 
-    if (curvePoints.length > 1) {
-      const grad = ctx.createLinearGradient(0, PAD.t, 0, H - PAD.b);
-      grad.addColorStop(0, isBypassed ? 'rgba(142,145,153,0.12)' : 'rgba(255, 159, 10, 0.28)');
-      grad.addColorStop(0.55, isBypassed ? 'rgba(142,145,153,0.03)' : 'rgba(255, 159, 10, 0.05)');
-      grad.addColorStop(1, 'rgba(255, 159, 10, 0)');
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(curvePoints[0][0], zeroY);
-      for (const [px, py] of curvePoints) ctx.lineTo(px, py);
-      ctx.lineTo(curvePoints[curvePoints.length - 1][0], zeroY);
-      ctx.closePath();
-      ctx.fillStyle = grad;
-      ctx.fill();
-      ctx.restore();
-
-      ctx.save();
-      ctx.strokeStyle = isBypassed ? '#6e717a' : '#ff9f0a';
-      ctx.lineWidth = compact ? 2 : 2.5;
-      if (!isBypassed) {
-        ctx.shadowColor = 'rgba(255, 159, 10, 0.35)';
-        ctx.shadowBlur = 8;
-      }
-      ctx.beginPath();
-      curvePoints.forEach(([px, py], i) => {
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      });
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // 3. Active Sine Sweep Laser Line
+    // 4. Active Sine Sweep Laser Line
     if (activeSweepHz !== null) {
       const sx = freqToX(activeSweepHz, W, PAD.l, PAD.r);
       ctx.save();
-      ctx.strokeStyle = '#00eefc';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#f43f5e';
+      ctx.lineWidth = 1.8;
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
       ctx.moveTo(sx, PAD.t);
       ctx.lineTo(sx, H - PAD.b);
       ctx.stroke();
+      ctx.fillStyle = '#f43f5e';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText(`♪ ${Math.round(activeSweepHz)}Hz`, Math.min(W - 38, Math.max(PAD.l + 32, sx)), PAD.t + 12);
       ctx.restore();
     }
 
-    // 4. Parametric Nodes B1..B5 (Amber rings, Ion Cyan #00eefc for selected band)
-    if (!isBypassed) {
-      livePeq.bands.forEach((band, idx) => {
-        const hx = freqToX(band.freq, W, PAD.l, PAD.r);
-        const hy = dbToY(band.gain, H, PAD.t, PAD.b);
-        const isSel = !compact && idx === selectedBand;
-        const strokeCol = isSel ? '#00eefc' : '#ff9f0a';
-        const r = compact ? 4.5 : isSel ? 8.5 : 7.5;
+    // 5. Draggable Handles for Bands 1..5
+    livePeq.bands.forEach((band, idx) => {
+      const hx = freqToX(band.freq, W, PAD.l, PAD.r);
+      const hy = dbToY(band.gain, H, PAD.t, PAD.b);
+      const isSel = idx === selectedBand;
+      const color = BAND_COLORS[idx];
 
-        if (isSel) {
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(hx, hy, 14, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(0, 238, 252, 0.16)';
-          ctx.fill();
-          ctx.restore();
-        }
-
+      if (isSel) {
         ctx.beginPath();
-        ctx.arc(hx, hy, r, 0, Math.PI * 2);
-        ctx.fillStyle = '#121316';
+        ctx.arc(hx, hy, compactDocked ? 11 : 14, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.globalAlpha = 0.22;
         ctx.fill();
-        ctx.lineWidth = compact ? 1.5 : 2;
-        ctx.strokeStyle = strokeCol;
-        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
 
-        ctx.beginPath();
-        ctx.arc(hx, hy, compact ? 1.5 : isSel ? 3 : 2.4, 0, Math.PI * 2);
-        ctx.fillStyle = strokeCol;
-        ctx.fill();
+      ctx.beginPath();
+      ctx.arc(hx, hy, compactDocked ? (isSel ? 7.2 : 6.2) : isSel ? 8.5 : 7, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#090d16';
+      ctx.stroke();
 
-        if (!compact) {
-          ctx.fillStyle = strokeCol;
-          ctx.font = 'bold 9px "JetBrains Mono", monospace';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          const labelY = hy < PAD.t + 16 ? hy + 20 : hy - 10;
-          ctx.fillText(`B${idx + 1}`, hx, labelY);
-        }
-      });
-    }
-  }, [livePeq, savedSnapshot, selectedBand, activeSweepHz, compact, isBypassed, sizeTick]);
+      ctx.fillStyle = '#090d16';
+      ctx.font = `bold ${compactDocked ? 9 : 10}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(idx + 1), hx, hy + 0.5);
+    });
+  }, [livePeq, savedSnapshot, selectedBand, activeSweepHz, sizeTick, compactDocked]);
 
   const findNearestBand = (clientX: number, clientY: number): number | null => {
     const canvas = canvasRef.current;
@@ -272,7 +278,7 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
     const y = clientY - rect.top;
 
     let bestIdx: number | null = null;
-    let bestDist = 34; // Generous thumb touch target on mobile!
+    let bestDist = 30;
     livePeq.bands.forEach((b, idx) => {
       const hx = freqToX(b.freq, rect.width, PAD.l, PAD.r);
       const hy = dbToY(b.gain, rect.height, PAD.t, PAD.b);
@@ -286,7 +292,6 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
   };
 
   const applyDragCoords = (bandIdx: number, clientX: number, clientY: number) => {
-    if (!onChangeBand) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
@@ -298,10 +303,9 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (compact || !onChangeBand) return;
     const hit = findNearestBand(e.clientX, e.clientY);
     const targetIdx = hit !== null ? hit : selectedBand;
-    onSelectBand?.(targetIdx);
+    onSelectBand(targetIdx);
     setDraggingBand(targetIdx);
     e.currentTarget.setPointerCapture(e.pointerId);
     if (hit !== null) {
@@ -310,7 +314,7 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (compact || draggingBand === null) return;
+    if (draggingBand === null) return;
     applyDragCoords(draggingBand, e.clientX, e.clientY);
   };
 
@@ -319,7 +323,6 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
   };
 
   const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    if (compact || !onChangeBand) return;
     e.preventDefault();
     const band = livePeq.bands[selectedBand];
     const delta = e.deltaY < 0 ? 0.15 : -0.15;
@@ -327,10 +330,8 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
     onChangeBand(selectedBand, { q: nextQ });
   };
 
-  const activeBand = livePeq.bands[selectedBand] ?? livePeq.bands[0];
-
   return (
-    <div className="flex flex-col gap-2 w-full select-none">
+    <div className="relative w-full select-none">
       <canvas
         ref={canvasRef}
         onPointerDown={handlePointerDown}
@@ -338,28 +339,16 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onWheel={handleWheel}
-        className={
-          compact
-            ? 'w-full h-24 rounded-lg border border-surface-variant/40 block'
-            : 'w-full aspect-[2.05/1] min-h-[175px] rounded-lg border border-surface-variant/40 cursor-grab active:cursor-grabbing touch-none block'
-        }
+        className={`w-full rounded-xl border border-slate-800 cursor-grab active:cursor-grabbing touch-none transition-[height] duration-200 ${
+          compactDocked ? 'h-36 sm:h-44' : 'h-60 sm:h-72'
+        }`}
       />
-
-      {!compact && (
-        <div className="flex items-center justify-between px-2.5 py-1.5 bg-surface-container rounded-lg">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-secondary-container shrink-0" />
-            <span className="font-mono text-[11px] text-on-surface truncate">
-              {isBypassed
-                ? 'EQ TẮT • Đường đáp tuyến phẳng (Hardware Bypass 0 dB)'
-                : `B${selectedBand + 1} • ${activeBand.freq.toLocaleString('vi-VN')} Hz • ${
-                    activeBand.gain > 0 ? '+' : ''
-                  }${activeBand.gain.toFixed(1)} dB • Q ${activeBand.q.toFixed(2)}`}
-            </span>
-          </div>
-          <span className="font-mono text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-surface-container-high text-secondary-fixed shrink-0">
-            IIR 5-TAP
-          </span>
+      {!compactDocked && (
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 px-1 text-[11px] text-slate-400">
+          <span>Mẹo: Kéo nút 1–5 để chỉnh Tần số &amp; Gain thời gian thực • Lăn chuột để đổi độ rộng Q</span>
+          {savedSnapshot && (
+            <span className="text-slate-400">--- Đường nét đứt: Profile gốc đang lưu trong chip</span>
+          )}
         </div>
       )}
     </div>

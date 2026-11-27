@@ -3,35 +3,20 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --android-inset-top: 0px;
-    --android-inset-bottom: 0px;
-  }
-
   html,
   body {
     margin: 0;
     padding: 0;
-    background-color: #121316;
-    color: #e3e2e6;
-    overscroll-behavior: none;
-    -webkit-tap-highlight-color: transparent;
+    background-color: #090d16;
+    color: #f1f5f9;
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: #343538 #121316;
-  }
-
-  .pt-safe {
-    padding-top: max(env(safe-area-inset-top, 0px), var(--android-inset-top, 0px));
-  }
-
-  .pb-safe {
-    padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--android-inset-bottom, 0px));
+    scrollbar-color: #334155 #090d16;
   }
 
   input[type='range'] {
-    accent-color: #ff9f0a;
+    accent-color: #06b6d4;
   }
 }
