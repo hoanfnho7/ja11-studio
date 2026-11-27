@@ -322,13 +322,29 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
     setDraggingBand(null);
   };
 
-  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const band = livePeq.bands[selectedBand];
-    const delta = e.deltaY < 0 ? 0.15 : -0.15;
-    const nextQ = Math.max(0.1, Math.min(10, Math.round((band.q + delta) * 100) / 100));
-    onChangeBand(selectedBand, { q: nextQ });
-  };
+  const stateRef = useRef({ livePeq, selectedBand, onSelectBand, onChangeBand });
+  stateRef.current = { livePeq, selectedBand, onSelectBand, onChangeBand };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const onNativeWheel = (e: WheelEvent) => {
+      const hit = findNearestBand(e.clientX, e.clientY);
+      // Only intercept wheel when hovering directly over a Band node (1..5) or holding Shift/Alt,
+      // so normal page scrolling never gets hijacked when cursor passes over the sticky graph!
+      if (hit === null && !e.shiftKey && !e.altKey) return;
+      e.preventDefault();
+      const { livePeq: curPeq, selectedBand: curSel, onSelectBand: selFn, onChangeBand: chgFn } = stateRef.current;
+      const targetIdx = hit !== null ? hit : curSel;
+      if (hit !== null && hit !== curSel) selFn(hit);
+      const band = curPeq.bands[targetIdx];
+      const delta = e.deltaY < 0 ? 0.15 : -0.15;
+      const nextQ = Math.max(0.1, Math.min(10, Math.round((band.q + delta) * 100) / 100));
+      chgFn(targetIdx, { q: nextQ });
+    };
+    canvas.addEventListener('wheel', onNativeWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', onNativeWheel);
+  }, [compactDocked]);
 
   return (
     <div className="relative w-full select-none">
@@ -338,14 +354,13 @@ export const InteractiveEqCanvas: React.FC<Props> = ({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        onWheel={handleWheel}
         className={`w-full rounded-xl border border-slate-800 cursor-grab active:cursor-grabbing touch-none transition-[height] duration-200 ${
           compactDocked ? 'h-36 sm:h-44' : 'h-60 sm:h-72'
         }`}
       />
       {!compactDocked && (
         <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 px-1 text-[11px] text-slate-400">
-          <span>Mẹo: Kéo nút 1–5 để chỉnh Tần số &amp; Gain thời gian thực • Lăn chuột để đổi độ rộng Q</span>
+          <span>Mẹo: Kéo nút 1–5 để chỉnh Tần số &amp; Gain • Trỏ chuột vào nút 1–5 rồi lăn chuột để đổi độ rộng Q</span>
           {savedSnapshot && (
             <span className="text-slate-400">--- Đường nét đứt: Profile gốc đang lưu trong chip</span>
           )}
