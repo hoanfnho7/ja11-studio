@@ -153,7 +153,34 @@ public class MainActivity extends Activity implements Ja11UsbController.Listener
         FrameLayout contentFrame = new FrameLayout(this);
         contentFrame.setBackgroundColor(UiKit.C_SURFACE);
 
-        tabEqView = new TabEqView(this, usbController, this::launchImportFilePicker);
+        tabEqView = new TabEqView(this, usbController, new TabEqView.HostActions() {
+            @Override
+            public void onRequestImportXml() {
+                launchImportFilePicker();
+            }
+
+            @Override
+            public void onSaveChipCurveToVault(PeqSnapshot snap) {
+                String stamp = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.US).format(new java.util.Date());
+                String name = I18n.tr("JA11 Từ Chip (" + stamp + ")", "JA11 On-Chip (" + stamp + ")");
+                PeqProfile created = new PeqProfile(
+                        "personal-chip-" + System.currentTimeMillis(),
+                        name,
+                        I18n.tr("Đọc trực tiếp từ bộ nhớ chip FiiO JA11 (đồng bộ từ máy khác).", "Captured directly from FiiO JA11 chip memory."),
+                        "personal",
+                        "JadeAudio JA11",
+                        I18n.tr("Chip JA11", "JA11 Chip"),
+                        snap,
+                        0,
+                        System.currentTimeMillis()
+                );
+                List<PeqProfile> nextVault = presetRepository.upsertVaultProfile(created);
+                tabEqView.setQuickProfiles(nextVault);
+                tabProfilesView.reloadVaultFromDisk();
+                tabEqView.refreshUiFromController();
+                showToast(I18n.tr("Đã lưu \"" + name + "\" vào Kho Offline!", "Saved \"" + name + "\" to Offline Vault!"));
+            }
+        });
         tabEqView.setQuickProfiles(presetRepository.loadVaultProfiles());
 
         tabSweepView = new TabSweepView(this, sineEngine, new TabSweepView.HostActions() {

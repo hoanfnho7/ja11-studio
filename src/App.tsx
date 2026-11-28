@@ -22,7 +22,7 @@ import { parseAnyPresetFile } from './core/fiioXml';
 import { Lang, detectInitialLang, saveLang, tr } from './core/i18n';
 import { DEFAULT_NEUTRAL_BANDS, EQ_PRESET_NAMES, FilterType, PeqProfile } from './core/ja11Protocol';
 import { EngineState, ja11Engine } from './core/liveSyncEngine';
-import { upsertVaultProfile } from './services/presetVault';
+import { findMatchingVaultProfile, upsertVaultProfile } from './services/presetVault';
 import { AndroidUsbTransport, isRunningInsideAndroidApk } from './transports/androidUsbTransport';
 import { WebHidTransport } from './transports/webHidTransport';
 
@@ -53,6 +53,26 @@ export const App: React.FC = () => {
     saveLang(lang);
     document.documentElement.lang = lang;
   }, [lang]);
+
+  // Auto-identify the real curve currently running inside JA11 chip when connecting (Android <-> PC sync visibility!)
+  useEffect(() => {
+    if (!engineState.hardware.connected || !engineState.savedFlashSnapshot) return;
+    const preset = engineState.hardware.eqPreset;
+    if (preset === 4) {
+      setActiveProfileName(tr(lang, 'Tắt EQ (Bypass 0 dB)', 'EQ Off (0 dB Bypass)'));
+    } else if (preset !== 3) {
+      setActiveProfileName(EQ_PRESET_NAMES[preset] ?? `Mode ${preset}`);
+    } else {
+      const matched = findMatchingVaultProfile(engineState.savedFlashSnapshot);
+      if (matched) {
+        setActiveProfileName(matched.name);
+      } else {
+        setActiveProfileName(
+          tr(lang, 'Trên Chip JA11 (Chưa lưu ở PC)', 'On-Chip Profile (Not in PC Vault)'),
+        );
+      }
+    }
+  }, [engineState.hardware.connected, engineState.savedFlashSnapshot, engineState.hardware.eqPreset, lang]);
 
   useEffect(() => {
     const el = graphSentinelRef.current;
@@ -137,6 +157,9 @@ export const App: React.FC = () => {
     : engineState;
 
   const isUnlocked = effectiveState.hardware.connected;
+  const matchedLiveVault = isUnlocked ? findMatchingVaultProfile(effectiveState.livePeq) : null;
+  const showSaveChipToVault =
+    isUnlocked && effectiveState.hardware.eqPreset === 3 && !matchedLiveVault;
   const headroom = computePeakResponseDb(effectiveState.livePeq);
   const clippingRisk = headroom.maxNetOutputDb > 0.2;
   const showDockedChrome = stickyFollow && isGraphDocked;
@@ -237,13 +260,13 @@ export const App: React.FC = () => {
 
               {!isRunningInsideAndroidApk() && (
                 <a
-                  href="https://github.com/hoanfnho7/ja11-studio/releases/latest/download/JA11-Studio-v3.2.apk"
+                  href="https://github.com/hoanfnho7/ja11-studio/releases/latest/download/JA11-Studio-latest.apk"
                   target="_blank"
                   rel="noreferrer"
                   className="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium text-sm transition flex items-center justify-center gap-2"
                 >
                   <Smartphone className="w-4 h-4 text-cyan-400" />
-                  {tr(lang, 'Tải App Android (.APK v3.2)', 'Download Android App (.APK v3.2)')}
+                  {tr(lang, 'Tải App Android (.APK v3.2.4)', 'Download Android App (.APK v3.2.4)')}
                 </a>
               )}
             </div>
@@ -318,8 +341,19 @@ export const App: React.FC = () => {
             >
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
-                  <span className="font-semibold text-cyan-300 truncate">{activeProfileName}</span>
+                  <span
+                    className={`w-2 h-2 rounded-full shrink-0 ${
+                      matchedLiveVault ? 'bg-emerald-400' : 'bg-amber-400'
+                    }`}
+                  />
+                  <span className="font-semibold text-cyan-300 truncate">
+                    {matchedLiveVault ? matchedLiveVault.name : activeProfileName}
+                  </span>
+                  {showSaveChipToVault && (
+                    <span className="hidden md:inline px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/35 text-amber-300 font-mono text-[10px] shrink-0">
+                      {tr(lang, 'Chưa lưu ở máy này', 'Not in local Vault')}
+                    </span>
+                  )}
                   <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px] shrink-0">
                     Pre {effectiveState.livePeq.masterGain > 0 ? '+' : ''}
                     {effectiveState.livePeq.masterGain.toFixed(1)}dB
@@ -331,6 +365,42 @@ export const App: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
+                  {showSaveChipToVault && (
+                    <button
+                      onClick={() => {
+                        const d = new Date();
+                        const stamp = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+                        const savedName = tr(lang, `JA11 Từ Chip (${stamp})`, `JA11 On-Chip (${stamp})`);
+                        upsertVaultProfile(effectiveState.livePeq, {
+                          name: savedName,
+                          description: tr(
+                            lang,
+                            'Đọc trực tiếp từ bộ nhớ chip FiiO JA11 (đồng bộ từ thiết bị khác).',
+                            'Captured directly from FiiO JA11 chip memory (synced from another device).',
+                          ),
+                          category: 'personal',
+                        });
+                        setActiveProfileName(savedName);
+                        setVaultRevision((n) => n + 1);
+                        showToast(
+                          tr(
+                            lang,
+                            `Đã lưu cấu hình từ Chip thành "${savedName}" vào Kho Offline!`,
+                            `Saved on-chip curve as "${savedName}" to Offline Vault!`,
+                          ),
+                        );
+                      }}
+                      className="px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-[11px] font-medium cursor-pointer whitespace-nowrap"
+                      title={tr(
+                        lang,
+                        'Lưu đường EQ đang chạy trên chip JA11 vào Kho Offline của máy tính này',
+                        'Save the EQ curve currently running on JA11 into this PC Offline Vault',
+                      )}
+                    >
+                      {tr(lang, '+ Lưu từ Chip', '+ Save Chip')}
+                    </button>
+                  )}
+
                   <button
                     onClick={() => {
                       const flatName = tr(lang, 'Phẳng 0 dB', 'Flat 0 dB');

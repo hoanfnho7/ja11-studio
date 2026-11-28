@@ -1,6 +1,6 @@
 import { BUILTIN_PROFILES } from '../core/defaultPresets';
 import { serializeFiioXml } from '../core/fiioXml';
-import { PeqProfile, PeqSnapshot, cloneSnapshot } from '../core/ja11Protocol';
+import { PeqProfile, PeqSnapshot, cloneSnapshot, snapshotsEqual } from '../core/ja11Protocol';
 import { isRunningInsideAndroidApk } from '../transports/androidUsbTransport';
 
 const VAULT_STORAGE_KEY = 'ja11_studio_vault_v1';
@@ -84,6 +84,24 @@ export function deleteVaultProfile(id: string): PeqProfile[] {
 export function resetVaultDefaults(): PeqProfile[] {
   saveVaultProfiles(BUILTIN_PROFILES);
   return [...BUILTIN_PROFILES];
+}
+
+/**
+ * Matches a live/on-chip 5-band PEQ snapshot against the local Offline Vault
+ * so switching JA11 between Phone <-> PC immediately identifies which profile is active on chip.
+ */
+export function findMatchingVaultProfile(
+  snapshot: PeqSnapshot | null | undefined,
+  vaultList?: PeqProfile[],
+): PeqProfile | null {
+  if (!snapshot) return null;
+  const list = vaultList ?? loadVaultProfiles();
+  for (const p of list) {
+    if (snapshotsEqual(snapshot, p)) {
+      return p;
+    }
+  }
+  return null;
 }
 
 export function downloadProfileAsFiioXml(profile: Pick<PeqProfile, 'name' | 'description' | 'masterGain' | 'bands'>) {

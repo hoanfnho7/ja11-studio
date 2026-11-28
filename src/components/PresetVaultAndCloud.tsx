@@ -55,6 +55,8 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
 }) => {
   const [tab, setTab] = useState<'vault' | 'handpicked'>('vault');
   const [vault, setVault] = useState<PeqProfile[]>(() => loadVaultProfiles());
+  const [expandedDesc, setExpandedDesc] = useState<Record<string, boolean>>({});
+  const toggleDesc = (id: string) => setExpandedDesc((prev) => ({ ...prev, [id]: !prev[id] }));
 
   useEffect(() => {
     if (vaultRevision > 0) {
@@ -361,7 +363,28 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
                         {p.masterGain}dB
                       </span>
                     </div>
-                    {p.description && <p className="text-slate-400 text-[11px] line-clamp-2">{p.description}</p>}
+                    {p.description && (
+                      <div className="space-y-0.5">
+                        <p
+                          className={`text-slate-400 text-[11px] whitespace-pre-line break-words ${
+                            expandedDesc[p.id] ? '' : 'line-clamp-2'
+                          }`}
+                        >
+                          {p.description}
+                        </p>
+                        {(p.description.length > 72 || p.description.includes('\n')) && (
+                          <button
+                            type="button"
+                            onClick={() => toggleDesc(p.id)}
+                            className="text-[10px] text-cyan-400 hover:text-cyan-300 font-medium cursor-pointer"
+                          >
+                            {expandedDesc[p.id]
+                              ? tr(lang, 'Thu gọn ▴', 'Show less ▴')
+                              : tr(lang, 'Xem thêm ▾', 'Show more ▾')}
+                          </button>
+                        )}
+                      </div>
+                    )}
                     <p className="text-[10px] font-mono text-slate-500 truncate">{renderBandSummary(p)}</p>
                   </div>
 
@@ -547,7 +570,28 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
                         </span>
                       </div>
                     </div>
-                    <p className="text-slate-400 text-[11px] line-clamp-2">{p.description}</p>
+                    {p.description && (
+                      <div className="space-y-0.5">
+                        <p
+                          className={`text-slate-400 text-[11px] whitespace-pre-line break-words ${
+                            expandedDesc[`cloud-${p.id}`] ? '' : 'line-clamp-2'
+                          }`}
+                        >
+                          {p.description}
+                        </p>
+                        {(p.description.length > 72 || p.description.includes('\n')) && (
+                          <button
+                            type="button"
+                            onClick={() => toggleDesc(`cloud-${p.id}`)}
+                            className="text-[10px] text-cyan-400 hover:text-cyan-300 font-medium cursor-pointer"
+                          >
+                            {expandedDesc[`cloud-${p.id}`]
+                              ? tr(lang, 'Thu gọn ▴', 'Show less ▴')
+                              : tr(lang, 'Xem thêm ▾', 'Show more ▾')}
+                          </button>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between text-[10px] text-slate-500">
                       <span className="font-mono truncate max-w-[70%]">{renderBandSummary(p)}</span>
                       {p.author && <span className="text-slate-400 shrink-0">@{p.author}</span>}

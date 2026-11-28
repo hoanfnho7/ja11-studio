@@ -31,17 +31,19 @@ jobs:
 
             Real-time 5-Band Hardware PEQ, Hardware DAC Volume (0–60), Ear Peak Sweep, and Offline/Cloud Preset Studio for **FiiO / JadeAudio JA11** (`KT02H20`) — now with **full English & Vietnamese (`EN | VI`)** bilingual support across Web and Android!
 
-            ### ✨ What's New in v3.2.3
-            - **Permanent Delete for ALL Offline Vault Profiles (Web & Android):** You can now delete any built-in or saved profile from your Offline Vault — deletions persist across page reloads / app restarts (even if you empty the vault completely). Use **Restore Defaults (`↺`)** anytime to bring back the 6 starter presets.
-            - **Instant Drag-and-Drop XML Vault Sync** on Web Studio.
+            ### ✨ What's New in v3.2.4
+            - **On-Chip Profile Inspector & Cross-Device Detection (Android ↔ PC):** Automatically matches the 5-band curve read directly from your JA11 chip against your local Offline Vault — instantly showing whether it matches a saved preset or came from another device, with a **1-click Save Chip Curve to Vault** button!
+            - **Expandable Profile Descriptions (`Show more / Show less`)**: Keeps profile cards tidy at 2 lines by default while letting you expand full notes on click.
+            - **Permanent Zero-404 APK Download Link (`JA11-Studio-latest.apk`)** synced in Web Header & Gate.
 
-            ### 📱 Android Pure Native App (`JA11-Studio-v3.2.3.apk`)
+            ### 📱 Android Pure Native App (`JA11-Studio-v3.2.4.apk`)
             - **100% Pure Native Android (Zero WebView):** 120Hz Skia Canvas PEQ graph, 2-finger pinch Q-factor, 48kHz Float32 `AudioTrack` sine sweep, and USB-C OTG HID auto-framing (`Report ID = 2`).
-            - Download **`JA11-Studio-v3.2.3.apk`** under **Assets** below and install directly.
+            - Download **`JA11-Studio-v3.2.4.apk`** (or **`JA11-Studio-latest.apk`**) under **Assets** below and install directly.
 
             ### 💻 Web Studio (Desktop Chrome / Edge / Opera)
             - Launch live at [https://hoanfnho7.github.io/ja11-studio/](https://hoanfnho7.github.io/ja11-studio/) — plug in your JA11 and click **Connect**.
           files: |
-            release/JA11-Studio-v3.2.3.apk
+            release/JA11-Studio-v3.2.4.apk
+            release/JA11-Studio-latest.apk
           draft: false
           prerelease: false

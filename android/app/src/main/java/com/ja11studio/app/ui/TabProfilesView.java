@@ -525,9 +525,24 @@ public final class TabProfilesView extends LinearLayout {
             card.addView(top, UiKit.matchWrapBottomMargin(ctx, 5f));
 
             if (!prof.description.isEmpty()) {
-                TextView dTv = UiKit.label(ctx, prof.description, 12f, UiKit.C_TEXT_MUTED, UiKit.FONT_SANS);
+                final TextView dTv = UiKit.label(ctx, prof.description, 12f, UiKit.C_TEXT_MUTED, UiKit.FONT_SANS);
                 dTv.setMaxLines(2);
-                card.addView(dTv, UiKit.matchWrapBottomMargin(ctx, 6f));
+                dTv.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                card.addView(dTv, UiKit.matchWrapBottomMargin(ctx, 2f));
+                if (prof.description.length() > 72 || prof.description.contains("\n")) {
+                    final TextView moreTv = UiKit.label(ctx, I18n.tr("Xem thêm ▾", "Show more ▾"), 10.5f, UiKit.C_CYAN_TEXT, UiKit.FONT_MONO_BOLD);
+                    final boolean[] exp = {false};
+                    View.OnClickListener toggleDesc = v -> {
+                        exp[0] = !exp[0];
+                        dTv.setMaxLines(exp[0] ? Integer.MAX_VALUE : 2);
+                        moreTv.setText(exp[0] ? I18n.tr("Thu gọn ▴", "Show less ▴") : I18n.tr("Xem thêm ▾", "Show more ▾"));
+                    };
+                    dTv.setOnClickListener(toggleDesc);
+                    moreTv.setOnClickListener(toggleDesc);
+                    card.addView(moreTv, UiKit.matchWrapBottomMargin(ctx, 6f));
+                } else {
+                    ((LayoutParams) dTv.getLayoutParams()).bottomMargin = UiKit.dp(ctx, 6f);
+                }
             }
 
             // 5-Band summary box

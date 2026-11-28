@@ -34,6 +34,7 @@ import java.util.Locale;
 public final class TabEqView extends ScrollView {
     public interface HostActions {
         void onRequestImportXml();
+        void onSaveChipCurveToVault(PeqSnapshot snapshot);
     }
 
     private static String bandName(int idx) {
@@ -62,6 +63,7 @@ public final class TabEqView extends ScrollView {
 
     // Graph section
     private final TextView activeProfileTv;
+    private final TextView saveFromChipBtn;
     private final TextView revertBtn;
     private final PeqGraphView graphView;
     private final TextView selectedBandReadout;
@@ -143,20 +145,35 @@ public final class TabEqView extends ScrollView {
         apLp.leftMargin = UiKit.dp(ctx, 4f);
         activeProfileTv.setLayoutParams(apLp);
 
+        saveFromChipBtn = UiKit.actionButton(ctx, I18n.tr("＋Lưu Chip", "＋Save Chip"), Color.argb(45, 255, 159, 10), UiKit.C_AMBER_TEXT, UiKit.C_AMBER_CONTAINER, 7f, 9.5f);
+        saveFromChipBtn.setSingleLine(true);
+        saveFromChipBtn.setMinHeight(UiKit.dp(ctx, 28f));
+        saveFromChipBtn.setPadding(UiKit.dp(ctx, 7f), UiKit.dp(ctx, 3f), UiKit.dp(ctx, 7f), UiKit.dp(ctx, 3f));
+        saveFromChipBtn.setVisibility(GONE);
+        saveFromChipBtn.setOnClickListener(v -> {
+            UiKit.hapticTap(v);
+            hostActions.onSaveChipCurveToVault(controller.getLivePeq());
+        });
+
         revertBtn = UiKit.actionButton(ctx, I18n.tr("↺ Hoàn tác", "↺ Revert"), UiKit.C_SURFACE_HIGH, UiKit.C_AMBER_TEXT, Color.TRANSPARENT, 7f, 10f);
-        revertBtn.setMinHeight(UiKit.dp(ctx, 30f));
-        revertBtn.setPadding(UiKit.dp(ctx, 8f), UiKit.dp(ctx, 4f), UiKit.dp(ctx, 8f), UiKit.dp(ctx, 4f));
+        revertBtn.setSingleLine(true);
+        revertBtn.setMinHeight(UiKit.dp(ctx, 28f));
+        revertBtn.setPadding(UiKit.dp(ctx, 7f), UiKit.dp(ctx, 3f), UiKit.dp(ctx, 7f), UiKit.dp(ctx, 3f));
+        LinearLayout.LayoutParams rvLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        rvLp.leftMargin = UiKit.dp(ctx, 4f);
+        revertBtn.setLayoutParams(rvLp);
         revertBtn.setVisibility(GONE);
         revertBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
             controller.revertToSavedSnapshotAsync();
         });
 
-        TextView flatBtn = UiKit.actionButton(ctx, "Flat 0dB", UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_MUTED, Color.TRANSPARENT, 7f, 10f);
-        flatBtn.setMinHeight(UiKit.dp(ctx, 30f));
-        flatBtn.setPadding(UiKit.dp(ctx, 8f), UiKit.dp(ctx, 4f), UiKit.dp(ctx, 8f), UiKit.dp(ctx, 4f));
+        TextView flatBtn = UiKit.actionButton(ctx, "Flat 0dB", UiKit.C_SURFACE_HIGH, UiKit.C_TEXT_MUTED, Color.TRANSPARENT, 7f, 9.5f);
+        flatBtn.setSingleLine(true);
+        flatBtn.setMinHeight(UiKit.dp(ctx, 28f));
+        flatBtn.setPadding(UiKit.dp(ctx, 7f), UiKit.dp(ctx, 3f), UiKit.dp(ctx, 7f), UiKit.dp(ctx, 3f));
         LinearLayout.LayoutParams flLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        flLp.leftMargin = UiKit.dp(ctx, 5f);
+        flLp.leftMargin = UiKit.dp(ctx, 4f);
         flatBtn.setLayoutParams(flLp);
         flatBtn.setOnClickListener(v -> {
             UiKit.hapticTap(v);
@@ -165,6 +182,7 @@ public final class TabEqView extends ScrollView {
 
         graphHdr.addView(graphTitle);
         graphHdr.addView(activeProfileTv);
+        graphHdr.addView(saveFromChipBtn);
         graphHdr.addView(revertBtn);
         graphHdr.addView(flatBtn);
         graphCard.addView(graphHdr, UiKit.matchWrapBottomMargin(ctx, 8f));
@@ -507,7 +525,25 @@ public final class TabEqView extends ScrollView {
             fwBadge.setText(hw.connected && !"--".equals(hw.firmwareVersion) ? hw.firmwareVersion : "32-BIT");
             uacBadge.setText(hw.uacMode == 0 ? "UAC 1.0" : "UAC 2.0");
 
-            activeProfileTv.setText(" • " + label);
+            PeqProfile matchedLocal = null;
+            for (PeqProfile qp : quickProfiles) {
+                if (qp != null && qp.snapshot != null && qp.snapshot.sameValues(live)) {
+                    matchedLocal = qp;
+                    break;
+                }
+            }
+            boolean isUnmatchedOnChip = hw.connected && hw.eqPreset == 3 && matchedLocal == null;
+            if (matchedLocal != null) {
+                activeProfileTv.setText(" • ✓ " + matchedLocal.name);
+                activeProfileTv.setTextColor(UiKit.C_GREEN);
+            } else if (isUnmatchedOnChip) {
+                activeProfileTv.setText(I18n.tr(" • ⚡ Trên Chip (Chưa lưu)", " • ⚡ On Chip (Unsaved here)"));
+                activeProfileTv.setTextColor(UiKit.C_AMBER_TEXT);
+            } else {
+                activeProfileTv.setText(" • " + label);
+                activeProfileTv.setTextColor(UiKit.C_AMBER_TEXT);
+            }
+            saveFromChipBtn.setVisibility(isUnmatchedOnChip ? VISIBLE : GONE);
             revertBtn.setVisibility(unsaved ? VISIBLE : GONE);
 
             graphView.updateState(live, saved, selectedBand, bypassed, activeSweepHz);

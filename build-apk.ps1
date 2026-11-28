@@ -72,7 +72,7 @@ Write-Host "[5/6] Aligning APK on 4-byte boundary (zipalign)..."
 & "$buildTools\zipalign.exe" -f -p 4 "$buildDir\unaligned.apk" "$buildDir\aligned.apk"
 if ($LASTEXITCODE -ne 0) { throw "zipalign failed" }
 
-Write-Host "[6/6] Signing & verifying JA11-Studio-v3.2.3.apk (APK Signature Scheme v2 + v3)..."
+Write-Host "[6/6] Signing & verifying JA11-Studio-v3.2.4.apk (APK Signature Scheme v2 + v3)..."
 $keystore = Join-Path $root "android\ja11studio-release.jks"
 if (-not (Test-Path $keystore)) {
     & "$jbrBin\keytool.exe" -genkeypair `
@@ -83,7 +83,8 @@ if (-not (Test-Path $keystore)) {
         -dname "CN=JA11 Studio, OU=Audio, O=JA11Studio, L=HCM, ST=VN, C=VN" | Out-Null
 }
 
-$outApk = Join-Path $releaseDir "JA11-Studio-v3.2.3.apk"
+$outApk = Join-Path $releaseDir "JA11-Studio-v3.2.4.apk"
+$latestApk = Join-Path $releaseDir "JA11-Studio-latest.apk"
 & "$buildTools\apksigner.bat" sign `
     --ks $keystore `
     --ks-key-alias ja11studio `
@@ -96,5 +97,6 @@ if ($LASTEXITCODE -ne 0) { throw "apksigner sign failed" }
 & "$buildTools\apksigner.bat" verify --verbose $outApk
 if ($LASTEXITCODE -ne 0) { throw "apksigner verify failed" }
 
+Copy-Item -Force $outApk $latestApk
 $apkInfo = Get-Item $outApk
-Write-Host ("SUCCESS! Built Pure Native APK: {0} ({1:N1} KB)" -f $apkInfo.FullName, ($apkInfo.Length / 1KB))
+Write-Host ("SUCCESS! Built Pure Native APK: {0} & {1} ({2:N1} KB)" -f $apkInfo.FullName, $latestApk, ($apkInfo.Length / 1KB))
