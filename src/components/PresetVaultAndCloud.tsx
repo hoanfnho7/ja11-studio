@@ -39,6 +39,7 @@ interface Props {
   currentLivePeq: PeqSnapshot;
   activeProfileName: string;
   isSyncing?: boolean;
+  vaultRevision?: number;
   onPreviewProfileLive: (profile: PeqProfile) => void;
   onNotify: (msg: string) => void;
 }
@@ -48,11 +49,18 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
   currentLivePeq,
   activeProfileName,
   isSyncing = false,
+  vaultRevision = 0,
   onPreviewProfileLive,
   onNotify,
 }) => {
   const [tab, setTab] = useState<'vault' | 'handpicked'>('vault');
   const [vault, setVault] = useState<PeqProfile[]>(() => loadVaultProfiles());
+
+  useEffect(() => {
+    if (vaultRevision > 0) {
+      setVault(loadVaultProfiles());
+    }
+  }, [vaultRevision]);
   const [vaultFilter, setVaultFilter] = useState('');
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
@@ -321,6 +329,19 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2 gap-2.5 xl:flex-1 xl:overflow-y-auto xl:content-start pr-1">
+            {visibleVault.length === 0 && (
+              <div className="col-span-full p-6 rounded-xl bg-slate-950/60 border border-dashed border-slate-800 text-center text-slate-400 space-y-2">
+                <p className="text-xs">
+                  {vault.length === 0
+                    ? tr(
+                        lang,
+                        'Kho Offline đang trống. Bạn có thể kéo thả / Nhập file .XML, lưu cấu hình đang chỉnh, hoặc bấm nút ↺ ở trên để khôi phục 6 mẫu gốc.',
+                        'Offline Vault is empty. Drag & drop / Import .XML files, save your current curve, or click ↺ above to restore defaults.',
+                      )
+                    : tr(lang, 'Không tìm thấy cấu hình khớp từ khóa lọc.', 'No profiles matched your filter.')}
+                </p>
+              </div>
+            )}
             {visibleVault.map((p) => {
               const isAct = activeProfileName === p.name;
               return (
@@ -371,9 +392,12 @@ export const PresetVaultAndCloud: React.FC<Props> = ({
                         .XML
                       </button>
                       <button
-                        onClick={() => setVault(deleteVaultProfile(p.id))}
+                        onClick={() => {
+                          setVault(deleteVaultProfile(p.id));
+                          onNotify(tr(lang, `Đã xóa "${p.name}" khỏi Kho Offline.`, `Removed "${p.name}" from Offline Vault.`));
+                        }}
                         className="p-1 rounded bg-slate-800 text-slate-400 hover:text-rose-400 cursor-pointer"
-                        title={tr(lang, 'Xóa khỏi Kho', 'Remove from Vault')}
+                        title={tr(lang, 'Xóa vĩnh viễn khỏi Kho', 'Remove from Vault')}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

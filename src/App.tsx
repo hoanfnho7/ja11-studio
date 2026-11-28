@@ -34,6 +34,7 @@ export const App: React.FC = () => {
   const [activeProfileName, setActiveProfileName] = useState<string>('Harman Balanced (All-Rounder)');
   const [dragOverlay, setDragOverlay] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [vaultRevision, setVaultRevision] = useState(0);
 
   const [stickyFollow, setStickyFollow] = useState(true);
   const [isGraphDocked, setIsGraphDocked] = useState(false);
@@ -105,6 +106,7 @@ export const App: React.FC = () => {
         description: profile.description,
         category: 'personal',
       });
+      setVaultRevision((n) => n + 1);
       setActiveProfileName(profile.name);
       ja11Engine.applySnapshotLive(profile, profile.name);
       showToast(
@@ -666,6 +668,7 @@ export const App: React.FC = () => {
               currentLivePeq={effectiveState.livePeq}
               activeProfileName={activeProfileName}
               isSyncing={effectiveState.isSyncing}
+              vaultRevision={vaultRevision}
               onPreviewProfileLive={handlePreviewProfile}
               onNotify={showToast}
             />
