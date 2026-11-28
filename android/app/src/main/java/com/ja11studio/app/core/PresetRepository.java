@@ -198,20 +198,14 @@ public final class PresetRepository {
 
     public List<PeqProfile> loadVaultProfiles() {
         String raw = prefs.getString(KEY_OFFLINE_VAULT, null);
-        if (raw == null || raw.isEmpty()) {
+        // Only seed built-ins when vault has NEVER been initialized (raw == null)
+        if (raw == null) {
             List<PeqProfile> builtins = getBuiltinProfiles();
             saveVaultProfiles(builtins);
-            prefs.edit().putInt(KEY_VAULT_VER, CURRENT_VAULT_VER).apply();
             return builtins;
         }
         List<PeqProfile> parsed = deserializeList(raw);
-        if (parsed.isEmpty()) {
-            List<PeqProfile> builtins = getBuiltinProfiles();
-            saveVaultProfiles(builtins);
-            prefs.edit().putInt(KEY_VAULT_VER, CURRENT_VAULT_VER).apply();
-            return builtins;
-        }
-        // Migrate legacy personal built-ins -> universal starter presets while keeping user-created profiles
+        // One-time migration from legacy personal built-ins -> universal starter presets
         if (prefs.getInt(KEY_VAULT_VER, 1) < CURRENT_VAULT_VER) {
             List<PeqProfile> migrated = new ArrayList<>();
             for (PeqProfile p : parsed) {
@@ -221,14 +215,17 @@ public final class PresetRepository {
             }
             migrated.addAll(getBuiltinProfiles());
             saveVaultProfiles(migrated);
-            prefs.edit().putInt(KEY_VAULT_VER, CURRENT_VAULT_VER).apply();
             return migrated;
         }
+        // Respect empty [] if the user intentionally deleted all offline profiles!
         return parsed;
     }
 
     public void saveVaultProfiles(List<PeqProfile> list) {
-        prefs.edit().putString(KEY_OFFLINE_VAULT, serializeList(list)).apply();
+        prefs.edit()
+                .putString(KEY_OFFLINE_VAULT, serializeList(list))
+                .putInt(KEY_VAULT_VER, CURRENT_VAULT_VER)
+                .apply();
     }
 
     public List<PeqProfile> upsertVaultProfile(PeqProfile profile) {

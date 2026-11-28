@@ -10,18 +10,19 @@ const CURRENT_VAULT_VER = '2';
 export function loadVaultProfiles(): PeqProfile[] {
   try {
     const raw = localStorage.getItem(VAULT_STORAGE_KEY);
-    if (!raw) {
+    // Only seed built-in presets when the vault has NEVER been initialized (raw === null)
+    if (raw === null) {
       localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(BUILTIN_PROFILES));
       localStorage.setItem(VAULT_VER_KEY, CURRENT_VAULT_VER);
       return [...BUILTIN_PROFILES];
     }
     const parsed = JSON.parse(raw) as PeqProfile[];
-    if (!Array.isArray(parsed) || parsed.length === 0) {
+    if (!Array.isArray(parsed)) {
       localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(BUILTIN_PROFILES));
       localStorage.setItem(VAULT_VER_KEY, CURRENT_VAULT_VER);
       return [...BUILTIN_PROFILES];
     }
-    // Migrate legacy personal built-ins -> universal starter presets while preserving user-created profiles
+    // One-time migration from legacy personal built-ins -> universal starter presets
     if (localStorage.getItem(VAULT_VER_KEY) !== CURRENT_VAULT_VER) {
       const userCustom = parsed.filter((p) => p && typeof p.id === 'string' && !p.id.startsWith('builtin-'));
       const migrated = [...userCustom, ...BUILTIN_PROFILES];
@@ -29,6 +30,7 @@ export function loadVaultProfiles(): PeqProfile[] {
       localStorage.setItem(VAULT_VER_KEY, CURRENT_VAULT_VER);
       return migrated;
     }
+    // Respect empty [] if the user intentionally deleted all offline profiles!
     return parsed;
   } catch {
     return [...BUILTIN_PROFILES];
@@ -38,6 +40,7 @@ export function loadVaultProfiles(): PeqProfile[] {
 export function saveVaultProfiles(profiles: PeqProfile[]): void {
   try {
     localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(profiles));
+    localStorage.setItem(VAULT_VER_KEY, CURRENT_VAULT_VER);
   } catch {
     // ignore quota error
   }

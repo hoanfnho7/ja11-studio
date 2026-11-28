@@ -594,7 +594,7 @@ public final class TabProfilesView extends LinearLayout {
             });
             actRow.addView(xmlBtn);
 
-            if (!onlineMode && "personal".equals(prof.category)) {
+            if (!onlineMode) {
                 TextView delBtn = UiKit.actionButton(ctx, "✕", UiKit.C_SURFACE_HIGH, UiKit.C_ERROR, Color.TRANSPARENT, 8f, 11f);
                 LayoutParams dlLp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 dlLp.leftMargin = UiKit.dp(ctx, 6f);
